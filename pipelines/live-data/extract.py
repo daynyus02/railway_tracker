@@ -1,6 +1,7 @@
 """Extracts train data from the Realtime Trains API."""
 from os import environ as ENV
 
+from dotenv import load_dotenv
 import requests
 import pandas as pd
 
@@ -21,13 +22,14 @@ def get_trains(response: dict) -> list[dict]:
     """Extracts the list of train services from the API response."""
     return response['services']
 
-def extract_train_info(service: dict, name: str) -> dict:
+def extract_train_info(service: dict, name: str, crs: str) -> dict:
     """ Extracts key train information fields from a single service dictionary."""
     location_detail = service.get("locationDetail", {})
     origin = location_detail.get("origin", [{}])[0]
     destination = location_detail.get("destination", [{}])[0]
 
     return {'station_name': name,
+            'station_crs': crs,
             'origin_name': origin.get("description", ""),
             'origin_tiploc': origin.get("tiploc", ""),
             'destination_name': destination.get("description", ""),
@@ -41,9 +43,9 @@ def extract_train_info(service: dict, name: str) -> dict:
             'displayAs': location_detail.get("displayAs", "")
             }
 
-def make_train_info_list(train_list: list[dict], name:str) -> list[dict]:
+def make_train_info_list(train_list: list[dict], name:str, crs: str) -> list[dict]:
     """Processes a list of train services to extract structured information."""
-    return [extract_train_info(train, name) for train in train_list]
+    return [extract_train_info(train, name, crs) for train in train_list]
 
 def make_dataframe(train_data: list[dict]) -> pd.DataFrame:
     """Converts a list of train information dictionaries into a pandas DataFrame."""
@@ -54,7 +56,7 @@ def get_service_dataframe(crs:str) -> pd.DataFrame:
     data = fetch_station_json(crs)
     trains = get_trains(data)
     name = get_station_name(data)
-    trains_list = make_train_info_list(trains, name)
+    trains_list = make_train_info_list(trains, name, crs)
     return make_dataframe(trains_list)
 
 def fetch_train_data(station_list: list[str]) -> pd.DataFrame:
