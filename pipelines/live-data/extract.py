@@ -12,18 +12,21 @@ def fetch_station_json(crs: str) -> dict:
     response = requests.get(url=url, auth=(ENV["API_USERNAME"], ENV["API_PASSWORD"]))
     return response.json()
 
+def get_station_name(response: dict):
+    location = response.get('location')
+    return location.get('name')
+
 def get_trains(response: dict) -> list[dict]:
     """Extracts the list of train services from the API response."""
     return response['services']
 
-def extract_train_info(response: dict) -> dict:
+def extract_train_info(service: dict, name: str) -> dict:
     """ Extracts key train information fields from a single service dictionary."""
-    location_detail = response.get("locationDetail", {})
+    location_detail = service.get("locationDetail", {})
     origin = location_detail.get("origin", [{}])[0]
     destination = location_detail.get("destination", [{}])[0]
     
-    return {"station_name": '',
-            "station_tiploc": '',
+    return {'station_name': name,
             'origin_name': origin.get("description", ""),
             'origin_tiploc': origin.get("tiploc", ""),
             'destination_name': destination.get("description", ""),
@@ -37,9 +40,9 @@ def extract_train_info(response: dict) -> dict:
             'displayAs': location_detail.get("displayAs", "")
             }
 
-def make_train_info_list(train_list: list[dict]) -> list[dict]:
+def make_train_info_list(train_list: list[dict], name:str) -> list[dict]:
     """Processes a list of train services to extract structured information."""
-    return [extract_train_info(train) for train in train_list]
+    return [extract_train_info(train, name) for train in train_list]
 
 def make_dataframe(train_data: list[dict]) -> pd.DataFrame:
     """Converts a list of train information dictionaries into a pandas DataFrame."""
@@ -49,7 +52,8 @@ def get_service_dataframe(crs:str) -> pd.DataFrame:
     """Retrieves, processes, and returns train data as a dataframe for a given station CRS."""
     data = fetch_station_json(crs)
     trains = get_trains(data)
-    trains_list = make_train_info_list(trains)
+    name = get_station_name(data)
+    trains_list = make_train_info_list(trains, name)
     return make_dataframe(trains_list)
 
 def fetch_train_data(station_list: list[str]) -> pd.DataFrame:
@@ -59,7 +63,5 @@ def fetch_train_data(station_list: list[str]) -> pd.DataFrame:
     return pd.concat(station_dfs, ignore_index=True)
 
 if __name__ == "__main__":
-    load_dotenv()
-    response = fetch_station_json('LTV')
-    print(get_trains(response))
+    pass
     
