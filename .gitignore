@@ -8,7 +8,6 @@ __pycache__
 .pytest_cache
 
 *.csv
-.csv
 
 .terraform*
 *.tfstate
@@ -16,4 +15,9 @@ __pycache__
 *.tfvars
 
 *.json
+
+.DS_Store
+
+*.parquet
+
 
