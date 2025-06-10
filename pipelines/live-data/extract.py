@@ -25,7 +25,6 @@ def fetch_station_json(crs: str) -> dict:
 
 def get_station_name(response: dict):
     """Returns the station name from the api response."""
-    logger.debug("Extracting station name from response.")
     location = response.get('location')
     if location:
         name = location.get('name', 'Unknown')
@@ -36,9 +35,8 @@ def get_station_name(response: dict):
 
 def get_trains(response: dict) -> list[dict]:
     """Extracts the list of train services from the API response."""
-    logger.debug("Extracting train services from response.")
     services = response.get('services', [])
-    logger.info("Train services successfully retrieved.rain services.")
+    logger.info("Train services successfully retrieved from API response.")
     return services
 
 def extract_train_info(service: dict, name: str, crs: str) -> dict:
@@ -72,7 +70,7 @@ def make_train_info_list(train_list: list[dict], name:str, crs: str) -> list[dic
 
 def make_dataframe(train_data: list[dict]) -> pd.DataFrame:
     """Converts a list of train information dictionaries into a pandas DataFrame."""
-    logger.debug("Creating dataframe from train data.")
+    logger.debug("Creating dataframe from service data.")
     df = pd.DataFrame(train_data)
     logger.info("Created dataframe with %d records.", len(df))
     return df
@@ -90,12 +88,12 @@ def get_service_dataframe(crs:str) -> pd.DataFrame:
 
 def fetch_train_data(station_list: list[str]) -> pd.DataFrame:
     """Returns a dataframe of the services given a list of station crs."""
-    logger.debug("Fetching train data for stations: %s", station_list)
+    logger.debug("Fetching service data for stations: %s", station_list)
     station_dfs = []
     for crs in station_list:
         station_dfs.append(get_service_dataframe(crs))
     aggregated_df = pd.concat(station_dfs, ignore_index=True)
-    logger.info("Fetched train data for %d stations.", len(station_list))
+    logger.info("Fetched service data for %d stations.", len(station_list))
     return aggregated_df
 
 if __name__ == "__main__":
