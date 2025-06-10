@@ -1,7 +1,7 @@
 """Extracts train data from the Realtime Trains API."""
-import requests
 from os import environ as ENV
-from dotenv import load_dotenv
+
+import requests
 import pandas as pd
 
 def fetch_station_json(crs: str) -> dict:
@@ -9,10 +9,11 @@ def fetch_station_json(crs: str) -> dict:
     if not isinstance(crs, str):
         raise ValueError("The CRS must be a string.")
     url = f"https://api.rtt.io/api/v1/json/search/{crs}"
-    response = requests.get(url=url, auth=(ENV["API_USERNAME"], ENV["API_PASSWORD"]))
+    response = requests.get(url=url, auth=(ENV["API_USERNAME"], ENV["API_PASSWORD"]), timeout=5)
     return response.json()
 
 def get_station_name(response: dict):
+    """Returns the station name from the api response."""
     location = response.get('location')
     return location.get('name')
 
@@ -25,7 +26,7 @@ def extract_train_info(service: dict, name: str) -> dict:
     location_detail = service.get("locationDetail", {})
     origin = location_detail.get("origin", [{}])[0]
     destination = location_detail.get("destination", [{}])[0]
-    
+
     return {'station_name': name,
             'origin_name': origin.get("description", ""),
             'origin_tiploc': origin.get("tiploc", ""),
@@ -57,6 +58,7 @@ def get_service_dataframe(crs:str) -> pd.DataFrame:
     return make_dataframe(trains_list)
 
 def fetch_train_data(station_list: list[str]) -> pd.DataFrame:
+    """Returns a dataframe of the services given a list of station crs."""
     station_dfs = []
     for crs in station_list:
         station_dfs.append(get_service_dataframe(crs))
@@ -64,4 +66,3 @@ def fetch_train_data(station_list: list[str]) -> pd.DataFrame:
 
 if __name__ == "__main__":
     pass
-    
