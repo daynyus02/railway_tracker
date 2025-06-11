@@ -127,4 +127,3 @@ if __name__ == "__main__":
                                ['SWI', 'PAD'],
                                ['DID', 'PAD'],
                                ['RDG', 'PAD']])
-    print(result.head())

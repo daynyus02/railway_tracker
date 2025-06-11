@@ -168,4 +168,3 @@ def test_make_train_info_list():
         assert len(result) == 2
         assert result[0]['serviceUid'] == '123'
         assert result[1]['serviceUid'] == '456'
-
