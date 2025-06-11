@@ -5,7 +5,6 @@ import logging
 from dotenv import load_dotenv
 import requests
 import pandas as pd
-from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -13,15 +12,15 @@ logger = logging.getLogger(__name__)
 def fetch_station_json(start_crs: str, end_crs: str) -> dict:
     """Fetches JSON data from the Realtime Trains API for a given CRS code."""
     if not isinstance(start_crs, str) and isinstance(end_crs, str):
-        logger.error("Invalid CRS: %s. Expected a string.", crs)
+        logger.error("Invalid CRS. Expected a string.")
         raise ValueError("The CRS must be a string.")
     url = f"https://api.rtt.io/api/v1/json/search/{start_crs}/to/{end_crs}"
     try:
         response = requests.get(url=url, auth=(ENV["API_USERNAME"], ENV["API_PASSWORD"]), timeout=5)
         logger.info("Successfully connected to '%s'", url)
         return response.json()
-    except requests.exceptions.RequestException as e:
-        logger.error("Request failed for CRS %s: %s", crs, e)
+    except requests.exceptions.RequestException:
+        logger.exception("Request failed for CRS %s: %s", start_crs, end_crs)
         raise
 
 def get_station_name(response: dict):
@@ -122,16 +121,15 @@ def fetch_train_data(station_list: list[list]) -> pd.DataFrame:
 
 if __name__ == "__main__":
     load_dotenv()
-    result = fetch_train_data([['PAD', 'BRI'], 
-                               ['RDG', 'BRI'], 
-                               ['DID', 'BRI'], 
+    result = fetch_train_data([['PAD', 'BRI'],
+                               ['RDG', 'BRI'],
+                               ['DID', 'BRI'],
                                ['SWI', 'BRI'],
                                ['CPM', 'BRI'],
                                ['BTH', 'BRI'],
-                               ['BRI', 'PAD'], 
-                               ['BTH', 'PAD'], 
-                               ['CPM', 'PAD'], 
+                               ['BRI', 'PAD'],
+                               ['BTH', 'PAD'],
+                               ['CPM', 'PAD'],
                                ['SWI', 'PAD'],
                                ['DID', 'PAD'],
                                ['RDG', 'PAD']])
-    
