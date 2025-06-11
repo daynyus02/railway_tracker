@@ -1,6 +1,6 @@
 ---
 name: "[FEATURE] <ticket_name>"
-about: Suggest an idea for this project
+about: Suggest a feature to add.
 title: "[FEATURE]"
 labels: ''
 assignees: ''

@@ -1,6 +1,6 @@
 ---
 name: "[BUG] <ticket_name>"
-about: Create a report to help us improve
+about: Report a bug.
 title: "[BUG]"
 labels: ''
 assignees: ''
