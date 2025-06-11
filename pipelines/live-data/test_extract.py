@@ -1,5 +1,6 @@
 """Unit testing for the functions in extract.py."""
 from unittest.mock import patch
+import pandas as pd
 
 from extract import get_station_name, get_trains, extract_train_info, make_train_info_list
 
@@ -68,21 +69,21 @@ def test_extract_train_info_with_valid_service():
     }
 }
 
-    name = 'Station Name'
+    name = 'station'
     crs = 'ABC'
     expected = {
-        'serviceUid': '123',
+        'service_uid': '123',
         'train_identity': '234',
-        'station_name': 'Station Name',
+        'station_name': 'station',
         'station_crs': 'ABC',
         'origin_name': 'arr_description',
         'destination_name': 'des_description',
-        'gbttBookedArrival': '1000',
-        'realtimeArrival': '2000',
-        'gbttBookedDeparture': '3000',
-        'realtimeDeparture': '4000',
-        'atocName': 'test',
-        'runDate': '0000-00-00',
+        'scheduled_arr_time': '1000',
+        'actual_arr_time': '2000',
+        'scheduled_dep_time': '3000',
+        'actual_dep_time': '4000',
+        'operator_name': 'test',
+        'service_date': '0000-00-00',
         'platform': '1',
         'platform_changed': False,
         'cancelled': False,
@@ -111,21 +112,21 @@ def test_extract_train_info_with_cancelled_service():
     }
 }
 
-    name = 'Station Name'
+    name = 'station'
     crs = 'ABC'
     expected = {
-        'serviceUid': '123',
+        'service_uid': '123',
         'train_identity': '234',
-        'station_name': 'Station Name',
+        'station_name': 'station',
         'station_crs': 'ABC',
         'origin_name': 'arr_description',
         'destination_name': 'des_description',
-        'gbttBookedArrival': '1000',
-        'realtimeArrival': '2000',
-        'gbttBookedDeparture': '3000',
-        'realtimeDeparture': '4000',
-        'atocName': 'test',
-        'runDate': '0000-00-00',
+        'scheduled_arr_time': '1000',
+        'actual_arr_time': '2000',
+        'scheduled_dep_time': '3000',
+        'actual_dep_time': '4000',
+        'operator_name': 'test',
+        'service_date': '0000-00-00',
         'platform': '1',
         'platform_changed': False,
         'cancelled': True,
@@ -141,10 +142,10 @@ def test_logs_debug_when_extracting_train_info(mock_logger):
     name = 'station1'
     crs = 'ABC'
     extract_train_info(service, name, crs)
-    mock_logger.debug.assert_called_once_with("Extracting train info for services at %s", "ABC")
+    mock_logger.debug.assert_called_once_with("Extracting train info for services from %s", "ABC")
 
 @patch('extract.logger')
-def test_logs_info_when_train_info_extracted(mock_logger):
+def test_logs_info_when_extracting_train_info(mock_logger):
     service = {'serviceUid': '123'}
     name = 'station1'
     crs = 'ABC'
@@ -167,3 +168,4 @@ def test_make_train_info_list():
         assert len(result) == 2
         assert result[0]['serviceUid'] == '123'
         assert result[1]['serviceUid'] == '456'
+

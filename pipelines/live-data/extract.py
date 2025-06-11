@@ -91,22 +91,16 @@ def make_train_info_list(train_list: list[dict], name:str, crs: str) -> list[dic
     """Processes a list of train services to extract structured information."""
     return [extract_train_info(train, name, crs) for train in train_list]
 
-def make_dataframe(train_data: list[dict]) -> pd.DataFrame:
-    """Converts a list of train information dictionaries into a pandas DataFrame."""
-    logger.debug("Creating dataframe from service data.")
-    df = pd.DataFrame(train_data)
-    logger.info("Created dataframe with %d records.", len(df))
-    return df
 
 def get_service_dataframe(start_crs:str, end_crs: str) -> pd.DataFrame:
     """Retrieves, processes, and returns train data as a dataframe for a given station CRS."""
-    logger.debug("Retrieving service dataframe for service from %s - %s", start_crs, end_crs)
+    logger.debug("Retrieving service dataframe for services from %s - %s", start_crs, end_crs)
     data = fetch_station_json(start_crs, end_crs)
     trains = get_trains(data)
     name = get_station_name(data)
     trains_list = make_train_info_list(trains, name, start_crs)
-    df = make_dataframe(trains_list)
-    logger.info("Retrieved service dataframe for CRS: %s", start_crs)
+    df = pd.DataFrame(trains_list)
+    logger.info("Created dataframe for %s with %d records.", start_crs, len(df))
     return df
 
 def fetch_train_data(station_list: list[list]) -> pd.DataFrame:
@@ -133,3 +127,4 @@ if __name__ == "__main__":
                                ['SWI', 'PAD'],
                                ['DID', 'PAD'],
                                ['RDG', 'PAD']])
+    print(result.head())
