@@ -127,5 +127,11 @@ if __name__ == "__main__":
                                ['DID', 'BRI'], 
                                ['SWI', 'BRI'],
                                ['CPM', 'BRI'],
-                               ['BTH', 'BRI']])
-    print(result.head())
+                               ['BTH', 'BRI'],
+                               ['BRI', 'PAD'], 
+                               ['BTH', 'PAD'], 
+                               ['CPM', 'PAD'], 
+                               ['SWI', 'PAD'],
+                               ['DID', 'PAD'],
+                               ['RDG', 'PAD']])
+    
