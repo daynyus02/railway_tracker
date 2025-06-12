@@ -1,10 +1,11 @@
 ## 📊 Live-Data 📊
+This directory contains the ETL pipeline for the Realtime Trains API. 
 
-### 📖 Overview 📖
-This directory contains the scripts required to run the ETL pipeline which transfers data from the Realtime Trains API to a database hosted by AWS RDS.
+This pipeline **extracts** train service data from the Realtime Trains API and processes it into a structured DataFrame format containing scheduled and actual arrival/departure times, platform changes, cancellations, and more. The data is then **transformed** before being **uploaded** to an RDS database hosted on AWS RDS.
 
-### Explanation
-
+### 📁 Files 📁
+- **extract.py**  
+    Contains the functions to fetch live train service data based on a station's CRS and extract only data required for analysis.
 
 ### 🛠️ Setup and Installation 🛠️
 **Any necessary steps for setting up the directory + installing dependencies**
@@ -21,4 +22,5 @@ This directory contains the scripts required to run the ETL pipeline which trans
 1.  
 2.  
 3.  
+
 
