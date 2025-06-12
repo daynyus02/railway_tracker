@@ -1,5 +1,4 @@
-"""Script for populating the database with relevant tables from ERD."""
-
+-- Drop tables in dependency order
 DROP TABLE IF EXISTS operator_incident_assignment;
 DROP TABLE IF EXISTS incident;
 DROP TABLE IF EXISTS cancellation;
@@ -10,7 +9,7 @@ DROP TABLE IF EXISTS operator;
 DROP TABLE IF EXISTS station;
 
 CREATE TABLE station (
-    station_id SMALLINT GENERATED ALWAYS AS IDENTITY ,
+    station_id SMALLINT GENERATED ALWAYS AS IDENTITY,
     station_name VARCHAR(50) NOT NULL,
     station_crs VARCHAR(3) NOT NULL UNIQUE,
     PRIMARY KEY (station_id)
@@ -28,23 +27,19 @@ CREATE TABLE route (
     destination_station_id SMALLINT NOT NULL,
     operator_id SMALLINT NOT NULL,
     PRIMARY KEY (route_id),
-    FOREIGN KEY (operator_id)
-        REFERENCES operator(operator_id),
-    FOREIGN KEY (origin_station_id)
-        REFERENCES station(station_id),
-    FOREIGN KEY (destination_station_id)
-        REFERENCES station(station_id)
+    FOREIGN KEY (operator_id) REFERENCES operator(operator_id),
+    FOREIGN KEY (origin_station_id) REFERENCES station(station_id),
+    FOREIGN KEY (destination_station_id) REFERENCES station(station_id)
 );
 
 CREATE TABLE train_service (
-    train_service_id GENERATED ALWAYS AS IDENTITY INT,
+    train_service_id INT GENERATED ALWAYS AS IDENTITY,
     service_uid VARCHAR(6) NOT NULL UNIQUE,
     train_identity VARCHAR(4) NOT NULL,
     service_date DATE NOT NULL,
-    route_id NOT NULL INT,
+    route_id INT NOT NULL,
     PRIMARY KEY (train_service_id),
-    FOREIGN KEY (route_id)
-        REFERENCES route(route_id)
+    FOREIGN KEY (route_id) REFERENCES route(route_id)
 );
 
 CREATE TABLE train_stop (
@@ -58,10 +53,8 @@ CREATE TABLE train_stop (
     platform SMALLINT NOT NULL,
     platform_changed BOOLEAN NOT NULL,
     PRIMARY KEY (train_stop_id),
-    FOREIGN KEY (station_id)
-        REFERENCES station(station_id),
-    FOREIGN KEY (train_service_id)
-        REFERENCES train_service(train_service_id)
+    FOREIGN KEY (station_id) REFERENCES station(station_id),
+    FOREIGN KEY (train_service_id) REFERENCES train_service(train_service_id)
 );
 
 CREATE TABLE cancellation (
@@ -69,8 +62,7 @@ CREATE TABLE cancellation (
     train_stop_id INT NOT NULL,
     reason VARCHAR(255) NOT NULL,
     PRIMARY KEY (cancellation_id),
-    FOREIGN KEY (train_stop_id)
-        REFERENCES train_stop(train_stop_id)
+    FOREIGN KEY (train_stop_id) REFERENCES train_stop(train_stop_id)
 );
 
 CREATE TABLE incident (
@@ -85,8 +77,7 @@ CREATE TABLE incident (
     info_link VARCHAR(255) NOT NULL,
     summary VARCHAR(255) NOT NULL,
     PRIMARY KEY (incident_id),
-    FOREIGN KEY (route_id)
-        REFERENCES route(route_id)
+    FOREIGN KEY (route_id) REFERENCES route(route_id)
 );
 
 CREATE TABLE operator_incident_assignment (
@@ -94,14 +85,6 @@ CREATE TABLE operator_incident_assignment (
     incident_id INT NOT NULL,
     operator_id SMALLINT NOT NULL,
     PRIMARY KEY (operator_incident_assignment_id),
-    FOREIGN KEY (incident_id)
-        REFERENCES incident(incident_id)
-    FOREIGN KEY (operator_id)
-        REFERENCES operator(operator_id)
+    FOREIGN KEY (incident_id) REFERENCES incident(incident_id),
+    FOREIGN KEY (operator_id) REFERENCES operator(operator_id)
 );
-
-
-
-
-
-
