@@ -63,7 +63,8 @@ def extract_train_info(service: dict, name: str, crs: str) -> dict:
                     'platform': location_detail.get("platform"),
                     'platform_changed': location_detail.get("platformChanged"),
                     'cancelled': bool(location_detail.get('cancelReasonCode')),
-                    'cancel_reason': location_detail.get('cancelReasonLongText')
+                    'cancel_reason': location_detail.get('cancelReasonLongText'),
+                    'service_type' : service.get("serviceType")
                     }
 
     logger.info("Extracted train info for service '%s'", service_info.get('service_uid'))
