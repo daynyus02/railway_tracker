@@ -1,3 +1,4 @@
-# Connects to the database locally if .env is correctly set up.
+# Connects to the database if .env is correctly set up.
 source .env
-psql -u $DB_USER -p$DB_PASSWORD -h $DB_HOST $DB_NAME -P $DB_PORT -D $DB_NAME
+export PGPASSWORD = $DB_PASSWORD
+psql -h $DB_HOST -U $DB_USER -d $DB_NAME -p $DB_PORT

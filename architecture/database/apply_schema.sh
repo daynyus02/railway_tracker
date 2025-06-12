@@ -1,4 +1,4 @@
-# Connects to the database locally and runs schema.sql file.
+# Connects to the database and runs schema.sql file.
 source .env
 export PGPASSWORD = $DB_PASSWORD
-psql -h $DB_HOST -U $DB_USER $DB_NAME -c "schema.sql"
+psql -h $DB_HOST -U $DB_USER -d $DB_NAME -p $DB_PORT -c "schema.sql"
