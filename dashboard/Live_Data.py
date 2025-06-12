@@ -27,11 +27,11 @@ def highlight_operators(row):
     colors = [''] * len(row)
     operator = row["Operator"]
     if operator == "Elizabeth line":
-        colors[row.index.get_loc("Operator")] = 'background-color: #CBC3E3'
+        colors[row.index.get_loc("Operator")] = 'background-color: #6950a1'
     elif operator == "CrossCountry":
-        colors[row.index.get_loc("Operator")] = 'background-color: #A24857'
+        colors[row.index.get_loc("Operator")] = 'background-color: #CA123F'
     elif operator == "Great Western Railway":
-        colors[row.index.get_loc("Operator")] = 'background-color: #2E6F40'
+        colors[row.index.get_loc("Operator")] = 'background-color: #0A493E'
     return colors
 
 def highlight_delays(row):
@@ -42,7 +42,7 @@ def highlight_delays(row):
         return colors
     delayed = arrival > scheduled
     if delayed:
-        colors[row.index.get_loc("Arrival Time")] = 'background-color: #FF6961'
+        colors[row.index.get_loc("Arrival Time")] = 'background-color: #B31B1B'
     return colors
 
 ### Live trains table ###
@@ -90,6 +90,7 @@ live_trains.rename(columns={
 }, inplace=True)
 
 styled_trains = live_trains.style.apply(highlight_delays, axis=1).apply(highlight_operators, axis=1)
+st.subheader("Live Timetable:")
 st.dataframe(styled_trains, hide_index=True, height=210)
 
 ### Live delay table ###
@@ -125,6 +126,7 @@ live_delays.rename(columns={
     "operator_name": "Operator"
 }, inplace=True)
 styled_delays = live_delays.style.apply(highlight_operators, axis=1).apply(highlight_delays, axis=1)
+st.subheader("Delays:")
 st.dataframe(styled_delays, hide_index=True, height=210)
 
 ### Live cancellations data ###
