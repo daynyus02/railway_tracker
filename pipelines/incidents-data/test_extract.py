@@ -1,13 +1,13 @@
 """Tests for extract.py"""
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import requests
 import pytest
 import xml.etree.ElementTree as ET
 
 from extract import (is_paddington_to_bristol,
-                     extract_relevant_data, parse_xml)
+                     extract_relevant_data, parse_xml, get_incident_data)
 
 """Test is_paddington_to_bristol"""
 
@@ -68,3 +68,19 @@ def test_parse_xml_right_line(sample_incident_xml_right_line):
     result = parse_xml(mock_response)
 
     assert result
+
+
+"""Testing get_incident_data"""
+
+
+def test_get_incident_data():
+    with patch("requests.get") as mock_get, \
+            patch.dict("os.environ", {"GW_URL": "URL"}):
+        mock_response = Mock(spec=requests.Response)
+        mock_response.status_code = 200
+        mock_response.text = "<PiIncident></PiIncident>"
+        mock_get.return_value = mock_response
+
+        response = get_incident_data()
+        assert response.status_code == 200
+        assert "<PiIncident>" in response.text

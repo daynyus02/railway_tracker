@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 
 
-def fetch_incident_data() -> requests.Response:
+def get_incident_data() -> requests.Response:
     """Fetches data from API."""
     logger.info("Sending request to API.")
     response = requests.get(ENV["GW_URL"], timeout=5)
@@ -90,7 +90,7 @@ def parse_xml(response: requests.Response) -> list[dict]:
 
 def extract() -> pd.DataFrame:
     """Run extract process to get data from XML, and return it as a pandas dataframe."""
-    res = fetch_incident_data()
+    res = get_incident_data()
     relevant_incidents = parse_xml(res)
     return pd.DataFrame(relevant_incidents)
 
