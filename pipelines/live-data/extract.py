@@ -4,7 +4,7 @@ import logging
 
 from dotenv import load_dotenv
 import requests
-import pandas as pd
+from pandas import DataFrame, concat
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -74,24 +74,24 @@ def make_train_info_list(train_list: list[dict], name:str, crs: str) -> list[dic
     return [extract_train_info(train, name, crs) for train in train_list]
 
 
-def get_service_dataframe(crs: str) -> pd.DataFrame:
+def get_service_dataframe(crs: str) -> DataFrame:
     """Retrieves, processes, and returns train data as a dataframe for a given station CRS."""
     logger.debug("Retrieving service dataframe for services at %s.", crs)
     data = fetch_station_json(crs)
     trains = get_trains(data)
     name = get_station_name(data)
     trains_list = make_train_info_list(trains, name, crs)
-    df = pd.DataFrame(trains_list)
+    df = DataFrame(trains_list)
     logger.info("Created dataframe for %s with %d records.", crs, len(df))
     return df
 
-def fetch_train_data(station_list: list[list]) -> pd.DataFrame:
+def fetch_train_data(station_list: list[list]) -> DataFrame:
     """Returns a dataframe of services from the stations in a given list."""
     logger.debug("Fetching service data for stations: %s", station_list)
     station_dfs = []
     for station in station_list:
         station_dfs.append(get_service_dataframe(station))
-    aggregated_df = pd.concat(station_dfs, ignore_index=True)
+    aggregated_df = concat(station_dfs, ignore_index=True)
     logger.info("Fetched service data for %d stations.", len(station_list))
     return aggregated_df
 
@@ -99,4 +99,4 @@ if __name__ == "__main__":
     load_dotenv()
     stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
     result = fetch_train_data(stations)
-    
+    print(result.head())
