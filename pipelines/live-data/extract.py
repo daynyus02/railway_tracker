@@ -87,7 +87,7 @@ def get_service_dataframe(crs: str) -> pd.DataFrame:
     return df
 
 def fetch_train_data(station_list: list[list]) -> pd.DataFrame:
-    """Returns a dataframe of services from the stations given a list of stations."""
+    """Returns a dataframe of services from the stations in a given list."""
     logger.debug("Fetching service data for stations: %s", station_list)
     station_dfs = []
     for station in station_list:
