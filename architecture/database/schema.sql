@@ -50,7 +50,7 @@ CREATE TABLE train_stop (
     actual_arr_time TIME,
     scheduled_dep_time TIME,
     actual_dep_time TIME,
-    platform SMALLINT NOT NULL,
+    platform VARCHAR(3) NOT NULL,
     platform_changed BOOLEAN NOT NULL,
     PRIMARY KEY (train_stop_id),
     FOREIGN KEY (station_id) REFERENCES station(station_id),
