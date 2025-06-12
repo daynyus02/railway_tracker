@@ -36,7 +36,7 @@ def get_station_name(response: dict):
 def get_trains(response: dict) -> list[dict]:
     """Extracts the list of train services from the API response."""
     services = response.get('services', [])
-    if services == []:
+    if not services:
         logger.debug("No services to retrieve.")
         return services
     logger.info("Train services successfully retrieved from API.")
