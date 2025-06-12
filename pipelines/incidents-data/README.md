@@ -1,41 +1,25 @@
-Directory name
+## `pipelines/incident-data`
 
-Overview
-[Brief summary of the purpose of the directory]
+## Overview
+The directory contains the ETL pipeline for the National Rail Incidents API.
 
-Explanation
-[Sentence about the purpose of each file in directory]
+This pipeline extracts train service data from the National Rail Incidents API and processes it into a structured DataFrame format. The data is then transformed before being uploaded to an RDS database hosted on AWS RDS.
 
-Setup and Installation
-[Any necessary steps for setting up the directory + installing dependencies]
-1.
-2.
-3.
+## Explanation
+`extract.py` - Extract data from the API and turn it into a pandas dataframe.
 
-Usage
-[Instructions for using files in the directory]
-1.
-2.
-3.
-
-
-## Example 
-Railway Pipeline
-
-Overview
-An ETL pipeline which extracts data from the National Rail API, transforms it to a clean, consistent format and loads it to AWS RDS Database.
-
-Explanation
-- `pipeline.py` runs the extract, transform and load processes to take data from API to database.
-
-
-Setup and Installation
+## Setup and Installation
 1. Create and activate a new virtual environment 
 - `python3 -m venv .venv`
 - `source .venv/bin/activate`
 2. Install all dependencies.
 - `pip install -r requirements.txt`
+3. Ensure that environment variables are stored locally in a `.env` file.
 
-Usage
-1. Run the `pipeline.py` file to run the data pipeline.
-- `python3 pipeline.py
+### Example `.env`
+```bash
+GW_URL = XXX
+```
+
+## Usage
+Run `python3 extract.py` in the command line.
