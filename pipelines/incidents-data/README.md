@@ -11,7 +11,7 @@ This pipeline extracts train service data from the National Rail Incidents API a
 `conftest.py` - Contains fixtures for the tests.
 
 ## Setup and Installation
-1. Create and activate a new virtual environment 
+1. Create and activate a new virtual environment.
 - `python3 -m venv .venv`
 - `source .venv/bin/activate`
 2. Install all dependencies.
@@ -24,4 +24,4 @@ GW_URL = XXX
 ```
 
 ## Usage
-Run `python3 extract.py` in the command line.
+Run `python3 extract_incidents.py` in the command line.

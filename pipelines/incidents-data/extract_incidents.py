@@ -21,7 +21,7 @@ logging.basicConfig(
 
 def get_incident_data() -> requests.Response:
     """Fetches data from API."""
-    logger.info("Sending request to API.")
+    logger.debug("Sending request to API.")
     response = requests.get(ENV["GW_URL"], timeout=5)
     logger.info("Response status code: %s", response.status_code)
     return response
@@ -60,7 +60,7 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
         "info_link": info_link,
         "summary": summary
     }
-    logger.debug("Incident data: %s", incident_data)
+    logger.info("Incident data: %s", incident_data)
     return incident_data
 
 
@@ -81,7 +81,7 @@ def parse_xml(response: requests.Response) -> list[dict]:
         routes_text = "".join(routes_affected.itertext()).strip()
 
         if is_paddington_to_bristol(routes_text):
-            logger.debug("Paddington to Bristol found: %s", routes_text)
+            logger.info("Paddington to Bristol found: %s", routes_text)
             incident_data = extract_relevant_data(ns, incident)
             incidents.append(incident_data)
 
