@@ -23,7 +23,7 @@ CREATE TABLE operator (
 );
 
 CREATE TABLE route (
-    route_id INT GENERATED ALWAYS AS IDENTITY,
+    route_id SMALLINT GENERATED ALWAYS AS IDENTITY,
     origin_station_id SMALLINT NOT NULL,
     destination_station_id SMALLINT NOT NULL,
     operator_id SMALLINT NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE train_service (
 );
 
 CREATE TABLE train_stop (
-    train_stop_id GENERATED ALWAYS AS IDENTITY INT,
+    train_stop_id SMALLINT GENERATED ALWAYS AS IDENTITY,
     train_service_id INT NOT NULL,
     station_id SMALLINT NOT NULL,
     scheduled_arr_time TIME,
