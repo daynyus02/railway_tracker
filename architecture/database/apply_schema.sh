@@ -1,4 +1,4 @@
 # Connects to the database and runs schema.sql file.
 source .env
-export PGPASSWORD = $DB_PASSWORD
-psql -h $DB_HOST -U $DB_USER -d $DB_NAME -p $DB_PORT -c "schema.sql"
+export PGPASSWORD=$DB_PASSWORD
+psql -h $DB_HOST -U $DB_USER -d $DB_NAME -p $DB_PORT -c "\i schema.sql"
