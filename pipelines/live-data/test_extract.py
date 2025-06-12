@@ -66,6 +66,7 @@ def test_extract_train_info_with_valid_service():
     'trainIdentity': '234',
     'atocName': 'test',
     'runDate': '0000-00-00',
+    'serviceType': 'train',
     'locationDetail': {
         'origin': [{'description': 'arr_description'}],
         'destination': [{'description': 'des_description'}],
@@ -96,7 +97,8 @@ def test_extract_train_info_with_valid_service():
         'platform': '1',
         'platform_changed': False,
         'cancelled': False,
-        'cancel_reason': None
+        'cancel_reason': None,
+        'service_type': 'train'
     }
     result = extract_train_info(service, name, crs)
     assert result == expected
@@ -107,6 +109,7 @@ def test_extract_train_info_with_cancelled_service():
     'serviceUid': '123',
     'trainIdentity': '234',
     'atocName': 'test',
+    'serviceType': 'train',
     'runDate': '0000-00-00',
     'locationDetail': {
         'origin': [{'description': 'arr_description'}],
@@ -140,7 +143,8 @@ def test_extract_train_info_with_cancelled_service():
         'platform': '1',
         'platform_changed': False,
         'cancelled': True,
-        'cancel_reason': 'cancelled'
+        'cancel_reason': 'cancelled',
+        'service_type': 'train'
     }
     result = extract_train_info(service, name, crs)
     assert result == expected
