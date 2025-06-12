@@ -99,4 +99,3 @@ if __name__ == "__main__":
     load_dotenv()
     stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
     result = fetch_train_data(stations)
-    print(result.head())
