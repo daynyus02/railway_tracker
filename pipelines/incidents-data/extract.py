@@ -29,7 +29,7 @@ def fetch_incident_data() -> requests.Response:
 
 def is_paddington_to_bristol(text: str) -> bool:
     """Filters for trains between Paddington and Bristol Temple Meads."""
-    pattern = r'between London Paddington and .*Bristol Temple Meads'
+    pattern = r'(between|from) London Paddington (and|to) .*Bristol Temple Meads'
     return re.search(pattern, text, re.IGNORECASE) is not None
 
 
