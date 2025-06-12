@@ -23,7 +23,7 @@ def fetch_station_json(crs: str) -> dict:
         logger.exception("Request failed for CRS: %s.", crs)
         raise
 
-def get_station_name(response: dict):
+def get_station_name(response: dict) -> str | None:
     """Returns the station name from the api response."""
     location = response.get('location')
     if location:
