@@ -1,14 +1,14 @@
 ## Database
 
-## Overview
+### Overview
 The database containing train data is a PostgreSQL database hosted on AWS RDS. This directory contains files to connect to the database and populate it with the relevant data tables.
 
-## Explanation
+### Explanation
 - `schema.sql` resets the database. All tables are dropped if they exist and then re-created to populate the database according to the project ERD.
 - `connect.sh` is a shell script which connects you to the database using the correct credentials.
 - `apply_schema.sh` is a shell script which connects you to the database and runs the schema file to populate the database.
 
-## Setup and Installation
+### Setup and Installation
 1. Create a `.env` file with the following credentials:
 - `DB_USER`
 - `DB_PASSWORD`
@@ -17,6 +17,6 @@ The database containing train data is a PostgreSQL database hosted on AWS RDS. T
 - `DB_PORT`=5432
 
 
-## Usage
+### Usage
 1. Run the `apply_schema.sh` shell script to populate the database.
 - `bash apply_schema.sh`
