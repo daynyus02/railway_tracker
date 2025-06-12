@@ -77,7 +77,7 @@ CREATE TABLE incident (
     incident_id INT GENERATED ALWAYS AS IDENTITY,
     route_id INT NOT NULL,
     start_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP,
     description TEXT NOT NULL,
     incident_number VARCHAR(32) NOT NULL,
     version_number BIGINT NOT NULL,
