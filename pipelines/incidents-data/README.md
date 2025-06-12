@@ -7,6 +7,7 @@ This pipeline extracts train service data from the National Rail Incidents API a
 
 ## Explanation
 `extract.py` - Extract data from the API and turn it into a pandas dataframe.
+`test_extract.py` - Tests for the extract script.
 
 ## Setup and Installation
 1. Create and activate a new virtual environment 
