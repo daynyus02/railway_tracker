@@ -42,7 +42,7 @@ CREATE TABLE train_service (
     train_identity VARCHAR(4) NOT NULL,
     service_date DATE NOT NULL,
     route_id NOT NULL INT,
-    PRIMARY KEY train_service_id,
+    PRIMARY KEY (train_service_id),
     FOREIGN KEY (route_id)
         REFERENCES route(route_id)
 );
@@ -58,7 +58,7 @@ CREATE TABLE train_stop (
     platform SMALLINT NOT NULL,
     platform_changed BOOLEAN NOT NULL,
     PRIMARY KEY (train_stop_id),
-    FOREIGN KEY station_id
+    FOREIGN KEY (station_id)
         REFERENCES station(station_id),
     FOREIGN KEY (train_service_id)
         REFERENCES train_service(train_service_id)
@@ -68,8 +68,8 @@ CREATE TABLE cancellation (
     cancellation_id INT GENERATED ALWAYS AS IDENTITY,
     train_stop_id INT NOT NULL,
     reason VARCHAR(255) NOT NULL,
-    PRIMARY KEY cancellation_id,
-    FOREIGN KEY train_stop_id
+    PRIMARY KEY (cancellation_id),
+    FOREIGN KEY (train_stop_id)
         REFERENCES train_stop(train_stop_id)
 );
 
