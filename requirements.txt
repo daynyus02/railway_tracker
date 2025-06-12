@@ -1,2 +1,6 @@
 pytest
 pylint
+requests
+python-dotenv
+pandas
+pytest-cov
