@@ -1,15 +1,15 @@
 """Tests for extract.py"""
 
 from unittest.mock import Mock, patch
+import xml.etree.ElementTree as ET
 
 import requests
 import pytest
-import xml.etree.ElementTree as ET
 
 from extract import (is_paddington_to_bristol,
                      extract_relevant_data, parse_xml, get_incident_data)
 
-"""Test is_paddington_to_bristol"""
+# Test is_paddington_to_bristol
 
 
 @pytest.mark.parametrize("text,expected", [
@@ -20,10 +20,11 @@ from extract import (is_paddington_to_bristol,
     ("from london paddington to bristol temple meads", True)
 ])
 def test_is_paddington_to_bristol_valid_input(text, expected):
+    """Test that it correctly validates a paddington -> bristol line."""
     assert is_paddington_to_bristol(text) == expected
 
 
-"""Test extract_relevant_data"""
+# Test extract_relevant_data
 
 
 def test_extract_relevant_data(sample_incident_xml_wrong_line):
@@ -40,16 +41,18 @@ def test_extract_relevant_data(sample_incident_xml_wrong_line):
     assert result == {
         "start_time": "2025-06-09T00:00:00.000+01:00",
         "end_time": "2025-06-13T23:59:00.000+01:00",
-        "description": "<p>The evening engineering work scheduled to take place between Exeter St Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
+        "description": "<p>The evening engineering work scheduled to take place between Exeter St \
+            Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
         "incident_number": "DA3DF5FDF4074F90BE871AAB6F0B8D1F",
         "version_number": "20250602082813",
         "is_planned": "true",
         "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
-        "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June"
+        "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth\
+              from Monday 9 to Friday 13 June"
     }
 
 
-"""Test parse_xml"""
+# Test parse_xml
 
 
 def test_parse_xml_wrong_line(sample_incident_xml_wrong_line):
@@ -70,10 +73,11 @@ def test_parse_xml_right_line(sample_incident_xml_right_line):
     assert result
 
 
-"""Testing get_incident_data"""
+# Testing get_incident_data
 
 
 def test_get_incident_data():
+    """Patch requests and test that it calls correctly."""
     with patch("requests.get") as mock_get, \
             patch.dict("os.environ", {"GW_URL": "URL"}):
         mock_response = Mock(spec=requests.Response)
