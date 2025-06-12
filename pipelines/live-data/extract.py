@@ -9,18 +9,18 @@ import pandas as pd
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def fetch_station_json(start_crs: str, end_crs: str) -> dict:
+def fetch_station_json(crs: str) -> dict:
     """Fetches JSON data from the Realtime Trains API for a given CRS code."""
-    if not isinstance(start_crs, str) and isinstance(end_crs, str):
-        logger.error("Invalid CRS. Expected a string.")
+    if not isinstance(crs, str):
+        logger.error("Invalid CRS: %s. Expected a string.", crs)
         raise ValueError("The CRS must be a string.")
-    url = f"https://api.rtt.io/api/v1/json/search/{start_crs}/to/{end_crs}"
+    url = f"https://api.rtt.io/api/v1/json/search/{crs}"
     try:
         response = requests.get(url=url, auth=(ENV["API_USERNAME"], ENV["API_PASSWORD"]), timeout=5)
         logger.info("Successfully connected to '%s'", url)
         return response.json()
     except requests.exceptions.RequestException:
-        logger.exception("Request failed for CRS %s: %s", start_crs, end_crs)
+        logger.exception("Request failed for CRS: %s.", crs)
         raise
 
 def get_station_name(response: dict):
@@ -49,23 +49,6 @@ def extract_train_info(service: dict, name: str, crs: str) -> dict:
     origin = location_detail.get("origin", [{}])[0]
     destination = location_detail.get("destination", [{}])[0]
 
-    # service_info =  {'serviceUid': service.get('serviceUid'),
-    #                 'train_identity': service.get("trainIdentity"),
-    #                 'station_name': name,
-    #                 'station_crs': crs,
-    #                 'origin_name': origin.get("description"),
-    #                 'destination_name': destination.get("description"),
-    #                 'gbttBookedArrival': location_detail.get("gbttBookedArrival"),
-    #                 'realtimeArrival': location_detail.get("realtimeArrival"),
-    #                 'gbttBookedDeparture': location_detail.get("gbttBookedDeparture"),
-    #                 'realtimeDeparture': location_detail.get("realtimeDeparture"),
-    #                 'atocName': service.get("atocName"),
-    #                 'runDate': service.get("runDate"),
-    #                 'platform': location_detail.get("platform"),
-    #                 'platform_changed': location_detail.get("platformChanged"),
-    #                 'cancelled': bool(location_detail.get('cancelReasonCode')),
-    #                 'cancel_reason': location_detail.get('cancelReasonLongText')
-    #                 }
     service_info =  {'service_uid': service.get('serviceUid'),
                     'train_identity': service.get("trainIdentity"),
                     'station_name': name,
@@ -92,38 +75,29 @@ def make_train_info_list(train_list: list[dict], name:str, crs: str) -> list[dic
     return [extract_train_info(train, name, crs) for train in train_list]
 
 
-def get_service_dataframe(start_crs:str, end_crs: str) -> pd.DataFrame:
+def get_service_dataframe(crs: str) -> pd.DataFrame:
     """Retrieves, processes, and returns train data as a dataframe for a given station CRS."""
-    logger.debug("Retrieving service dataframe for services from %s - %s", start_crs, end_crs)
-    data = fetch_station_json(start_crs, end_crs)
+    logger.debug("Retrieving service dataframe for services at %s.", crs)
+    data = fetch_station_json(crs)
     trains = get_trains(data)
     name = get_station_name(data)
-    trains_list = make_train_info_list(trains, name, start_crs)
+    trains_list = make_train_info_list(trains, name, crs)
     df = pd.DataFrame(trains_list)
-    logger.info("Created dataframe for %s with %d records.", start_crs, len(df))
+    logger.info("Created dataframe for %s with %d records.", crs, len(df))
     return df
 
 def fetch_train_data(station_list: list[list]) -> pd.DataFrame:
     """Returns a dataframe of the services given a list of station crs."""
     logger.debug("Fetching service data for stations: %s", station_list)
     station_dfs = []
-    for a,b in station_list:
-        station_dfs.append(get_service_dataframe(a,b))
+    for station in station_list:
+        station_dfs.append(get_service_dataframe(station))
     aggregated_df = pd.concat(station_dfs, ignore_index=True)
     logger.info("Fetched service data for %d stations.", len(station_list))
     return aggregated_df
 
 if __name__ == "__main__":
     load_dotenv()
-    result = fetch_train_data([['PAD', 'BRI'],
-                               ['RDG', 'BRI'],
-                               ['DID', 'BRI'],
-                               ['SWI', 'BRI'],
-                               ['CPM', 'BRI'],
-                               ['BTH', 'BRI'],
-                               ['BRI', 'PAD'],
-                               ['BTH', 'PAD'],
-                               ['CPM', 'PAD'],
-                               ['SWI', 'PAD'],
-                               ['DID', 'PAD'],
-                               ['RDG', 'PAD']])
+    stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
+    result = fetch_train_data(stations)
+    
