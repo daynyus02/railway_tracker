@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from incidents_extract import (is_paddington_to_bristol,
+from extract_incidents import (is_paddington_to_bristol,
                                extract_relevant_data, parse_xml, get_incident_data)
 
 # Test is_paddington_to_bristol
