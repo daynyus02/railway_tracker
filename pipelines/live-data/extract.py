@@ -39,7 +39,7 @@ def get_trains(response: dict) -> list[dict]:
     if services == []:
         logger.debug("No services to retrieve.")
         return services
-    logger.info("Train services successfully retrieved from API response.")
+    logger.info("Train services successfully retrieved from API.")
     return services
 
 def extract_train_info(service: dict, name: str, crs: str) -> dict:

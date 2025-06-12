@@ -1,57 +1,66 @@
 """Unit testing for the functions in extract.py."""
 from unittest.mock import patch
-import pandas as pd
 
 from extract import get_station_name, get_trains, extract_train_info, make_train_info_list
 
 ### Testing get_station_name() ###
 def test_get_station_name_returns_name_when_location_is_present():
+    """Tests that get_station_name correctly returns the station name."""
     response = {"location": {"name": "test"}}
     assert get_station_name(response) == "test"
 
 def test_get_station_name_returns_none_when_name_is_none():
-    response = {"location": {"name": None}}
+    """Tests that get_station_name returns None when station name is missing."""
+    response = {"location": {}}
     assert get_station_name(response) is None
 
 def test_get_station_name_returns_none_when_location_is_none():
+    """Tests that get_station_name returns None when location is None."""
     response = {"location": None}
     assert get_station_name(response) is None
 
 @patch('extract.logger')
 def test_logs_info_when_location_is_present(mock_logger):
+    """Tests that the info log is correctly called."""
     response = {'location': {'name': 'test'}}
     get_station_name(response)
     mock_logger.info.assert_called_once_with("Extracted station name: %s", 'test')
 
 @patch('extract.logger')
 def test_logs_warning_when_location_is_missing(mock_logger):
+    """Tests that the warning log is correctly called."""
     response = {}
     get_station_name(response)
     mock_logger.warning.assert_called_once_with("No location data found in response.")
 
 ### Testing get_trains() ###
 def test_get_trains_returns_empty_list_when_no_services():
+    """Tests that an empty list is returned when response is empty."""
     response = {}
     assert get_trains(response) == []
 
 def test_get_trains_returns_services_when_present():
+    """Tests that get_trains correctly returns services."""
     response = {'services': [{'service': 1}, {'service': 2}]}
     assert get_trains(response) == [{'service': 1}, {'service': 2}]
 
 @patch('extract.logger')
 def test_logs_info_when_services_are_retrieved(mock_logger):
+    """Tests that the info log is correctly called."""
     response = {'services': [{'service': 1}]}
     get_trains(response)
-    mock_logger.info.assert_called_once_with("Train services successfully retrieved from API response.")
+    mock_logger.info.assert_called_once_with("Train services successfully retrieved from API.")
 
 @patch('extract.logger')
 def test_logs_info_when_no_services_in_response(mock_logger):
+    """Tests that the debug log is correctly called."""
     response = {}
     get_trains(response)
     mock_logger.debug.assert_called_once_with("No services to retrieve.")
 
 ### Testing extract_train_info() ###
 def test_extract_train_info_with_valid_service():
+    """Tests that extract_train_info correctly processes response data."""
     service = {
     'serviceUid': '123',
     'trainIdentity': '234',
@@ -93,6 +102,7 @@ def test_extract_train_info_with_valid_service():
     assert result == expected
 
 def test_extract_train_info_with_cancelled_service():
+    """Tests that extract_train_info correctly processes cancellation data."""
     service = {
     'serviceUid': '123',
     'trainIdentity': '234',
@@ -138,6 +148,7 @@ def test_extract_train_info_with_cancelled_service():
 
 @patch('extract.logger')
 def test_logs_debug_when_extracting_train_info(mock_logger):
+    """Tests that the debug log is correctly called."""
     service = {'serviceUid': '123'}
     name = 'station1'
     crs = 'ABC'
@@ -146,6 +157,7 @@ def test_logs_debug_when_extracting_train_info(mock_logger):
 
 @patch('extract.logger')
 def test_logs_info_when_extracting_train_info(mock_logger):
+    """Tests that the info log is correctly called."""
     service = {'serviceUid': '123'}
     name = 'station1'
     crs = 'ABC'
@@ -155,6 +167,7 @@ def test_logs_info_when_extracting_train_info(mock_logger):
 ### Testing make_train_info_list() ###
 
 def test_make_train_info_list():
+    """Tests that make_train_info_list returns correct data."""
     train_list = [{'serviceUid': '123'}, {'serviceUid': '456'}]
     name = 'station1'
     crs = 'st1'
