@@ -3,7 +3,6 @@
 from unittest.mock import Mock, patch
 import xml.etree.ElementTree as ET
 
-import requests
 import pytest
 
 from extract import (is_paddington_to_bristol,
@@ -41,14 +40,12 @@ def test_extract_relevant_data(sample_incident_xml_wrong_line):
     assert result == {
         "start_time": "2025-06-09T00:00:00.000+01:00",
         "end_time": "2025-06-13T23:59:00.000+01:00",
-        "description": "<p>The evening engineering work scheduled to take place between Exeter St \
-            Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
+        "description": "<p>The evening engineering work scheduled to take place between Exeter St Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
         "incident_number": "DA3DF5FDF4074F90BE871AAB6F0B8D1F",
         "version_number": "20250602082813",
         "is_planned": "true",
         "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
-        "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth\
-              from Monday 9 to Friday 13 June"
+        "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June"
     }
 
 
@@ -57,7 +54,7 @@ def test_extract_relevant_data(sample_incident_xml_wrong_line):
 
 def test_parse_xml_wrong_line(sample_incident_xml_wrong_line):
     """Test that for an incident not on paddington -> bristol line, it is skipped over."""
-    mock_response = Mock(spec=requests.Response)
+    mock_response = Mock()
     mock_response.text = sample_incident_xml_wrong_line
     result = parse_xml(mock_response)
 
@@ -66,7 +63,7 @@ def test_parse_xml_wrong_line(sample_incident_xml_wrong_line):
 
 def test_parse_xml_right_line(sample_incident_xml_right_line):
     """Test that for an incident on paddington -> bristol line, it is in results."""
-    mock_response = Mock(spec=requests.Response)
+    mock_response = Mock()
     mock_response.text = sample_incident_xml_right_line
     result = parse_xml(mock_response)
 
@@ -80,7 +77,7 @@ def test_get_incident_data():
     """Patch requests and test that it calls correctly."""
     with patch("requests.get") as mock_get, \
             patch.dict("os.environ", {"GW_URL": "URL"}):
-        mock_response = Mock(spec=requests.Response)
+        mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "<PiIncident></PiIncident>"
         mock_get.return_value = mock_response
