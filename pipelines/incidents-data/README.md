@@ -6,8 +6,8 @@ The directory contains the ETL pipeline for the National Rail Incidents API.
 This pipeline extracts train service data from the National Rail Incidents API and processes it into a structured DataFrame format. The data is then transformed before being uploaded to an RDS database hosted on AWS RDS.
 
 ## Explanation
-`extract.py` - Extract data from the API and turn it into a pandas dataframe.
-`test_extract.py` - Tests for the extract script.
+`extract_incidents.py` - Extract data from the API and turn it into a pandas dataframe.
+`test_extract_incidents.py` - Tests for the extract script.
 `conftest.py` - Contains fixtures for the tests.
 
 ## Setup and Installation
