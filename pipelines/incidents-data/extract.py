@@ -40,7 +40,7 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
     version_number = incident_xml.findtext("inc:Version", namespaces=namespace)
     is_planned = incident_xml.findtext("inc:Planned", namespaces=namespace)
     start_time = incident_xml.findtext(
-        "inc:ValidityPeriod/com:StartTime", default="", namespaces=namespace)
+        "inc:ValidityPeriod/com:StartTime", namespaces=namespace)
     end_time = incident_xml.findtext(
         "inc:ValidityPeriod/com:EndTime", default="", namespaces=namespace)
     summary = "".join(incident_xml.find(
