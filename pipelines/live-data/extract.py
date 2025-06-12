@@ -43,7 +43,7 @@ def get_trains(response: dict) -> list[dict]:
     return services
 
 def extract_train_info(service: dict, name: str, crs: str) -> dict:
-    """ Extracts key train information fields from a single service dictionary."""
+    """Extracts key train information fields from a single service dictionary."""
     logger.debug("Extracting train info for services from %s", crs)
     location_detail = service.get("locationDetail", {})
     origin = location_detail.get("origin", [{}])[0]
@@ -87,7 +87,7 @@ def get_service_dataframe(crs: str) -> pd.DataFrame:
     return df
 
 def fetch_train_data(station_list: list[list]) -> pd.DataFrame:
-    """Returns a dataframe of the services given a list of station crs."""
+    """Returns a dataframe of services from the stations given a list of stations."""
     logger.debug("Fetching service data for stations: %s", station_list)
     station_dfs = []
     for station in station_list:
