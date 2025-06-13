@@ -26,7 +26,7 @@ data "aws_subnet" "public_subnet_3" {
 
 # ECR Repository and image for RTT pipeline lambda
 
-data "aws_ecr_repository" "rtt_pipeline_lambda_image-repo" {
+data "aws_ecr_repository" "rtt_pipeline_lambda_image_repo" {
   name = "c17-trains-ecr-rtt-pipeline"
 }
 
