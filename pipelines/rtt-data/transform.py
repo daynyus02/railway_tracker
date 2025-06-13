@@ -1,7 +1,7 @@
 """Script to clean the raw train data."""
 import logging
 
-from datetime import datetime
+from datetime import datetime, time
 
 from dotenv import load_dotenv
 
@@ -69,7 +69,7 @@ def convert_time_columns(data: DataFrame) -> DataFrame:
         'scheduled_dep_time', 'actual_dep_time'
     ]
 
-    def convert_hhmm_to_time(time_string):
+    def convert_hhmm_to_time(time_string) -> time:
         if pd.isna(time_string) or time_string == '':
             return pd.NaT
         try:
