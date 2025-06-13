@@ -106,7 +106,7 @@ def convert_platform_changed_to_bool(data: DataFrame) -> DataFrame:
 
 def convert_cancelled_to_bool(data: DataFrame) -> DataFrame:
     """Returning a dataframe that has boolean values inside the `cancelled` column."""
-    logger.info("Changing all cancelled rows to boolean data type.")
+    logger.debug("Changing all cancelled rows to boolean data type.")
     data["cancelled"] = data["cancelled"].astype(str).str.lower().map(
         {"true": True, "1": True, "false": False, "0": False}
     ).astype(bool)
