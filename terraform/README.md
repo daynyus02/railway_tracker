@@ -1,41 +1,22 @@
-Directory name
+# `/terraform`
 
-Overview
-[Brief summary of the purpose of the directory]
+## Overview
+Contains all the files for terraform configurations.
 
-Explanation
-[Sentence about the purpose of each file in directory]
+## Explanation
+- `/ECR` - Contains all ECR repositories for the project.
+- `/resources` - Contains resources needed for the project.
 
-Setup and Installation
-[Any necessary steps for setting up the directory + installing dependencies]
-1.
-2.
-3.
+## Setup and Installation
 
-Usage
-[Instructions for using files in the directory]
-1.
-2.
-3.
+To install terraform, please follow the guidance on their [official website](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
 
+## Usage
+1. Move into a directory.
+- `cd ECR`
+2. Initialise Terraform.
+- `terraform init`
+3. Apply configuration.
+- `terraform apply`
 
-## Example 
-Railway Pipeline
-
-Overview
-An ETL pipeline which extracts data from the National Rail API, transforms it to a clean, consistent format and loads it to AWS RDS Database.
-
-Explanation
-- `pipeline.py` runs the extract, transform and load processes to take data from API to database.
-
-
-Setup and Installation
-1. Create and activate a new virtual environment 
-- `python3 -m venv .venv`
-- `source .venv/bin/activate`
-2. Install all dependencies.
-- `pip install -r requirements.txt`
-
-Usage
-1. Run the `pipeline.py` file to run the data pipeline.
-- `python3 pipeline.py
+Note: Apply the configuration in `/ECR` first as the other resources rely on using images stored in the ECR repositories.
