@@ -31,7 +31,7 @@ data "aws_ecr_repository" "rtt_pipeline_lambda_image_repo" {
 }
 
 data "aws_ecr_image" "rtt_pipeline_lambda_image_version" {
-  repository_name = data.aws_ecr_repository.rtt_pipeline_lambda_image-repo.name
+  repository_name = data.aws_ecr_repository.rtt_pipeline_lambda_image_repo.name
   image_tag       = "latest"
 }
 
