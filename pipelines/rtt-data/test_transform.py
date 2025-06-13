@@ -19,8 +19,11 @@ from transform import (
 )
 
 
-def test_check_all_required_columns_present(test_data):
-    check_all_required_columns_present(test_data)
+def test_check_all_required_columns_present_raises_error(test_data):
+    test_df = test_data.copy()
+    test_df = test_data.drop(columns=["service_uid"])
+    with pytest.raises(ValueError, match="Missing required columns"):
+        check_all_required_columns_present(test_df)
 
 
 def test_filter_trains_removes_non_trains(test_data):
@@ -60,8 +63,8 @@ def test_convert_date_column(test_data):
     (0, False),
 ])
 def test_convert_cancelled_to_bool(input_value, expected):
-    df = DataFrame({"cancelled": [input_value]})
-    result = convert_cancelled_to_bool(df.copy())
+    test_df = DataFrame({"cancelled": [input_value]})
+    result = convert_cancelled_to_bool(test_df.copy())
     assert result["cancelled"].iloc[0] == expected
 
 
@@ -75,8 +78,8 @@ def test_convert_cancelled_to_bool(input_value, expected):
     (0, False),
 ])
 def test_convert_platform_changed_to_bool(input_value, expected):
-    df = DataFrame({"platform_changed": [input_value]})
-    result = convert_platform_changed_to_bool(df.copy())
+    test_df = DataFrame({"platform_changed": [input_value]})
+    result = convert_platform_changed_to_bool(test_df.copy())
     assert result["platform_changed"].iloc[0] == expected
 
 
