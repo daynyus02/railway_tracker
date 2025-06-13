@@ -1,41 +1,28 @@
-Directory name
+## Report
 
-Overview
-[Brief summary of the purpose of the directory]
+### Overview
+This directory contains the scripts for an AWS Lambda which creates PDF summary reports of a train station's performance (delays, cancellations) from the previous day's data in the RDS database.
 
-Explanation
-[Sentence about the purpose of each file in directory]
+### Explanation
+`extract_report_data.py` - Extracts data from the RDS for each station from the previous day.   
+`test_extract_report_data.py` - Tests for the extract script.   
+`conftest.py` - Contains fixtures for the tests.   
 
-Setup and Installation
-[Any necessary steps for setting up the directory + installing dependencies]
-1.
-2.
-3.
-
-Usage
-[Instructions for using files in the directory]
-1.
-2.
-3.
-
-
-## Example 
-Railway Pipeline
-
-Overview
-An ETL pipeline which extracts data from the National Rail API, transforms it to a clean, consistent format and loads it to AWS RDS Database.
-
-Explanation
-- `pipeline.py` runs the extract, transform and load processes to take data from API to database.
-
-
-Setup and Installation
-1. Create and activate a new virtual environment 
+### Setup and Installation
+1. Create and activate a new virtual environment.
 - `python3 -m venv .venv`
 - `source .venv/bin/activate`
 2. Install all dependencies.
 - `pip install -r requirements.txt`
+3. Ensure the following environment variables are stored locally in a `.env` file:
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_HOST`
+- `DB_NAME`
+- `DB_PORT`=5432
 
-Usage
-1. Run the `pipeline.py` file to run the data pipeline.
-- `python3 pipeline.py
+### Usage
+1.
+2.
+3.
+
