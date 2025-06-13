@@ -1,7 +1,6 @@
 """Fixtures for testing report files."""
 
 from pytest import fixture
-from pandas import DataFrame
 
 
 @fixture
