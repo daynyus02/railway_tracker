@@ -138,4 +138,3 @@ if __name__ == "__main__":
     stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
     result = fetch_train_data(stations)
     transformed_data = transform_train_data(result)
-    transformed_data.to_csv("trains.csv", index=False)
