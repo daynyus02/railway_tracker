@@ -9,6 +9,7 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - ACCESS_KEY - AWS IAM access key.
 - SECRET_KEY - The corresponding secret key for the above IAM user.
 - ACCOUNT_ID - AWS Account ID.
+- EMAIL - An email to subscribe to SNS topic.
 - VPC_ID - The ID of the VPC to use.
 - SUBNET_ID_X - The ID's of subnets to use.
 - DB_HOST - RDS instance endpoint.

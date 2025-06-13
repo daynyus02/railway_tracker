@@ -100,7 +100,9 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
   role          = aws_iam_role.pipeline_lambda_role.arn
   package_type  = "Image"
   image_uri     = data.aws_ecr_image.rtt_pipeline_lambda_image_version.image_uri
-  timeout       = 900
+  timeout       = 240
+  memory_size   = 128
+  depends_on    = [aws_iam_role_policy_attachment.pipeline_lambda_role_policy_connection]
 
   environment {
     variables = {
@@ -118,4 +120,16 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
     security_group_ids = [aws_security_group.rtt_pipeline_lambda_sg.id]
     subnet_ids         = [data.aws_subnet.public_subnet_1.id, data.aws_subnet.public_subnet_2.id, data.aws_subnet.public_subnet_3.id]
   }
+}
+
+# SNS for RTT pipeline alerts
+
+resource "aws_sns_topic" "rtt_pipeline_alerts_topic" {
+  name = "c17-trains-sns-topic-rtt-pipeline-alerts"
+}
+
+resource "aws_sns_topic_subscription" "rtt_pipeline_alerts_sub" {
+  topic_arn = aws_sns_topic.rtt_pipeline_alerts_topic.arn
+  protocol  = "email"
+  endpoint  = var.EMAIL
 }

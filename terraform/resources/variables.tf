@@ -61,3 +61,7 @@ variable "API_USERNAME" {
 variable "API_PASSWORD" {
   type = string
 }
+
+variable "EMAIL" {
+  type = string
+}
