@@ -3,7 +3,7 @@
 from os import environ as ENV
 import logging
 
-from psycopg2 import connect
+from psycopg2 import connect, OperationalError
 from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import connection as Connection
 from dotenv import load_dotenv
@@ -20,13 +20,19 @@ logging.basicConfig(
 def get_db_connection() -> Connection:
     """Gets a connection to the trains database."""
 
-    conn = connect(
-        user=ENV["DB_USER"],
-        password=ENV["DB_PASSWORD"],
-        host=ENV["DB_HOST"],
-        port=ENV["DB_PORT"],
-        database=ENV["DB_NAME"]
-    )
+    try:
+        conn = connect(
+            user=ENV["DB_USER"],
+            password=ENV["DB_PASSWORD"],
+            host=ENV["DB_HOST"],
+            port=ENV["DB_PORT"],
+            database=ENV["DB_NAME"]
+        )
+        logging.info("Successfully retrieved database connection.")
+    except OperationalError:
+        logging.error("Failed to get database connection.")
+        raise
+
     return conn
 
 
