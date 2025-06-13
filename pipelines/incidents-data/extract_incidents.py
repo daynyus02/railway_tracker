@@ -8,6 +8,7 @@ import re
 
 from dotenv import load_dotenv
 import requests
+from requests import Response
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ logging.basicConfig(
 )
 
 
-def get_incident_data() -> requests.Response:
+def get_incident_data() -> Response:
     """Fetches data from API."""
     logger.debug("Sending request to API.")
     response = requests.get(ENV["GW_URL"], timeout=5)
@@ -64,7 +65,7 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
     return incident_data
 
 
-def parse_xml(response: requests.Response) -> list[dict]:
+def parse_xml(response: Response) -> list[dict]:
     """Parse the XML response and filter incidents affecting Paddington to Bristol."""
     incidents = []
 
