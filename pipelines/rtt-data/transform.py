@@ -34,7 +34,7 @@ CRITICAL_COLUMNS = [
 ]
 
 
-def check_all_required_columns_present(data: DataFrame):
+def check_all_required_columns_present(data: DataFrame) -> None:
     """Checking if all columns required are present."""
     missing_columns = [
         col for col in REQUIRED_COLUMNS if col not in data.columns]
