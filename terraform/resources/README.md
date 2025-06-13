@@ -22,6 +22,18 @@ Create a `terraform.tfvars` file locally, and populate it with:
 
 ## Resources provisioned
 
+#### SNS Topic:
+- `c17-trains-sns-topic-rtt-pipeline-alerts`
+- For RTT pipeline alerts.
+
+#### Lambda:
+- `c17-trains-lambda-rtt-pipeline`
+- Runs the RTT ETL pipeline.
+
+#### Scheduler:
+- `c17-trains-schedule-rtt-pipeline`
+- Schedules the RTT ETL pipeline lambda to run every 5 minutes.
+
 ## Provisioning Resources
 
 To provision resources run the following commands:
