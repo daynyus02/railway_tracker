@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS station;
 CREATE TABLE station (
     station_id SMALLINT GENERATED ALWAYS AS IDENTITY,
     station_name VARCHAR(50) NOT NULL,
-    station_crs VARCHAR(3) NOT NULL UNIQUE,
+    station_crs VARCHAR(3) NOT NULL,
     PRIMARY KEY (station_id)
 );
 
@@ -88,3 +88,22 @@ CREATE TABLE operator_incident_assignment (
     FOREIGN KEY (incident_id) REFERENCES incident(incident_id),
     FOREIGN KEY (operator_id) REFERENCES operator(operator_id)
 );
+
+INSERT INTO operator VALUES
+    ("Great Western Railway")
+;
+
+INSERT INTO station VALUES
+    ('London Paddington', 'PAD'),
+    ('Bristol Temple Meads', 'BRI'),
+    ('Bath Spa', 'BTH'),
+    ('Swindon', 'SWI'),
+    ('Reading', 'RDG'),
+    ('Chippenham', 'CPM'),
+    ('Paddington Crossrail', 'PAD'),
+    ('Didcot Parkway', 'DID'),
+;
+
+INSERT INTO route
+    (1, 2, 1)
+;
