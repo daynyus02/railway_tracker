@@ -5,7 +5,7 @@ This directory contains the scripts for an AWS Lambda which creates PDF summary 
 
 ### Explanation
 `extract_report_data.py` - Extracts data from the RDS for each station from the previous day.   
-`test_extract_incidents.py` - Tests for the extract script.   
+`test_extract_report_data.py` - Tests for the extract script.   
 `conftest.py` - Contains fixtures for the tests.   
 
 ### Setup and Installation
