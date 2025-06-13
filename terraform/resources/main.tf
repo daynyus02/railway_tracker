@@ -125,3 +125,60 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
     }
   }
 }
+
+# EVENTBRIDGE
+
+# Scheduler permissions
+
+resource "aws_iam_role" "scheduler_role" {
+  name = "EventBridgeSchedulerRole-c17-trains"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "eventbridge_invoke_lambda_policy" {
+  name = "EventBridgeInvokePolicy-c17-trains"
+  role = aws_iam_role.scheduler_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "lambda:InvokeFunction"
+        Effect = "Allow"
+        Resource = [
+          aws_lambda_function.rtt_pipeline_lambda.arn
+        ]
+      }
+    ]
+  })
+}
+
+# Scheduler for RTT pipeline lambda
+
+resource "aws_scheduler_schedule" "rtt_pipeline_lambda_schedule" {
+  name       = "c17-trains-schedule-rtt-pipeline"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "cron(*/5 * * * ? *)"
+
+  target {
+    arn      = aws_lambda_function.rtt_pipeline_lambda.arn
+    role_arn = aws_iam_role.scheduler_role.arn
+  }
+}
