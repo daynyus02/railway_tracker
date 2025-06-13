@@ -1,4 +1,5 @@
 """Test for load script that loads data to the RDS."""
+# pylint: skip-file
 
 from unittest.mock import patch
 
