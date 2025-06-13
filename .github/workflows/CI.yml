@@ -49,9 +49,7 @@ jobs:
       matrix:
         directory:
           - terraform/ECR
-          - terraform/dashboard
-          - terraform/pipeline
-          - terraform/report     
+          - terraform/resources
     name: Validate ${{ matrix.directory }}
     defaults:
       run:

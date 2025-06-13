@@ -1,6 +1,6 @@
-# `/terraform/pipeline`
+# `/terraform/resources`
 
-All terraform files to provision the resources for the pipelines are here.
+Terraform files to provision resources for the project are here.
 
 ## Set up
 
