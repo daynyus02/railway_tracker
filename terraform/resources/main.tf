@@ -22,6 +22,8 @@ data "aws_subnet" "public_subnet_3" {
   id = var.SUBNET_ID_3
 }
 
+# ECR
+
 # ECR Repository and image for RTT pipeline lambda
 
 data "aws_ecr_repository" "rtt_pipeline_lambda_image-repo" {
@@ -32,6 +34,22 @@ data "aws_ecr_image" "rtt_pipeline_lambda_image_version" {
   repository_name = data.aws_ecr_repository.rtt_pipeline_lambda_image-repo.name
   image_tag       = "latest"
 }
+
+# SNS
+
+# SNS topic for RTT pipeline alerts
+
+resource "aws_sns_topic" "rtt_pipeline_alerts_topic" {
+  name = "c17-trains-sns-topic-rtt-pipeline-alerts"
+}
+
+resource "aws_sns_topic_subscription" "rtt_pipeline_alerts_sub" {
+  topic_arn = aws_sns_topic.rtt_pipeline_alerts_topic.arn
+  protocol  = "email"
+  endpoint  = var.EMAIL
+}
+
+# LAMBDA
 
 # Permissions for RTT pipeline lambda
 
@@ -58,6 +76,14 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
     ]
     resources = ["arn:aws:logs:eu-west-2:${var.ACCOUNT_ID}:*"]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sns:Publish"
+    ]
+    resources = [aws_sns_topic.rtt_pipeline_alerts_topic.arn]
+  }
 }
 
 resource "aws_iam_role" "pipeline_lambda_role" {
@@ -73,23 +99,6 @@ resource "aws_iam_policy" "pipeline_lambda_role_permissions_policy" {
 resource "aws_iam_role_policy_attachment" "pipeline_lambda_role_policy_connection" {
   role       = aws_iam_role.pipeline_lambda_role.name
   policy_arn = aws_iam_policy.pipeline_lambda_role_permissions_policy.arn
-}
-
-# RTT Pipeline Lambda Security Group
-
-resource "aws_security_group" "rtt_pipeline_lambda_sg" {
-  name        = "c17-trains-sg-rtt-pipeline-lambda"
-  description = "Allow Lambda to access the internet and RDS."
-  vpc_id      = data.aws_vpc.c17_vpc.id
-}
-
-resource "aws_vpc_security_group_egress_rule" "rtt_pipeline_lambda_egress" {
-  security_group_id = aws_security_group.rtt_pipeline_lambda_sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 0
-  to_port           = 0
-  ip_protocol       = "-1"
-  description       = "Allow all outbound traffic"
 }
 
 # RTT Pipeline Lambda
@@ -115,21 +124,4 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
       API_PASSWORD = var.API_PASSWORD
     }
   }
-
-  vpc_config {
-    security_group_ids = [aws_security_group.rtt_pipeline_lambda_sg.id]
-    subnet_ids         = [data.aws_subnet.public_subnet_1.id, data.aws_subnet.public_subnet_2.id, data.aws_subnet.public_subnet_3.id]
-  }
-}
-
-# SNS for RTT pipeline alerts
-
-resource "aws_sns_topic" "rtt_pipeline_alerts_topic" {
-  name = "c17-trains-sns-topic-rtt-pipeline-alerts"
-}
-
-resource "aws_sns_topic_subscription" "rtt_pipeline_alerts_sub" {
-  topic_arn = aws_sns_topic.rtt_pipeline_alerts_topic.arn
-  protocol  = "email"
-  endpoint  = var.EMAIL
 }
