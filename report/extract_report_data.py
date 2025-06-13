@@ -5,7 +5,7 @@ import logging
 
 from psycopg2 import connect
 from psycopg2.extras import RealDictCursor
-from psycopg2.extensions import connection
+from psycopg2.extensions import connection as Connection
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ logging.basicConfig(
 )
 
 
-def get_db_connection():
+def get_db_connection() -> Connection:
     """Gets a connection to the trains database."""
 
     conn = connect(
@@ -30,7 +30,7 @@ def get_db_connection():
     return conn
 
 
-def get_station_id_from_crs(station_crs: str, conn: connection) -> int:
+def get_station_id_from_crs(station_crs: str, conn: Connection) -> int:
     """Gets corresponding station ID from database for a given station CRS code."""
 
     with conn.cursor(cursor_factory=RealDictCursor) as curs:
@@ -50,7 +50,7 @@ def get_station_id_from_crs(station_crs: str, conn: connection) -> int:
     return result
 
 
-def get_days_data_per_station(station_crs: str, conn: connection) -> list[dict]:
+def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
     """Get data from the last 24 hours for a given station."""
 
     station_id = get_station_id_from_crs(station_crs, conn)
@@ -83,7 +83,7 @@ def get_days_data_per_station(station_crs: str, conn: connection) -> list[dict]:
 if __name__ == "__main__":
     load_dotenv()
 
-    db_conn = get_db_connection
+    db_conn = get_db_connection()
 
     stations = ["PAD", "RDG", "DID", "SWI", "CPM", "BTH", "BRI"]
 
