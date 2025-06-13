@@ -7,6 +7,8 @@ This pipeline **extracts** train service data from the Realtime Trains API and p
 - **extract.py**  
     Contains the functions to fetch live train service data based on a station's CRS and extract only data required for analysis.
 
+- **transform.py**  
+    Contains functions used to transform data fetched by the extract.py script. It prepares the raw data for the load phase by cleaning, validating, and converting it into the correct data types (e.g. time, date, boolean).
 ### 🛠️ Setup and Installation 🛠️
 **Any necessary steps for setting up the directory + installing dependencies**
 
