@@ -337,6 +337,141 @@ def update_train_service(api_data: DataFrame, conn: Connection):
         logger.info("No new train services to add.")
 
 
+def update_train_stop(api_data: DataFrame, conn: Connection):
+    """Updates database's train_stop table."""
+    api_data_train_stop = api_data[[
+        "service_uid", "station_name", "scheduled_arr_time",
+        "actual_arr_time", "scheduled_dep_time", "actual_dep_time",
+        "platform", "platform_changed"
+    ]].drop_duplicates()
+
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT train_service_id,
+                   station_id,
+                   scheduled_arr_time,
+                   actual_arr_time,
+                   scheduled_dep_time,
+                   actual_dep_time,
+                   platform,
+                   platform_changed
+            FROM train_stop;     
+            """
+                    )
+        rows = cur.fetchall()
+        database_data_train_stop = DataFrame(rows)
+
+        cur.execute("SELECT train_service_id, service_uid FROM train_service;")
+        rows = cur.fetchall()
+        database_data_train_services = DataFrame(rows)
+
+        cur.execute("SELECT station_id, station_name FROM station;")
+        rows = cur.fetchall()
+        database_data_stations = DataFrame(rows)
+
+    service_uid_to_id = dict(zip(
+        database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
+    station_name_to_id = dict(
+        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
+
+    api_data_train_stop["train_service_id"] = api_data_train_stop["service_uid"].map(
+        service_uid_to_id)
+    api_data_train_stop["station_id"] = api_data_train_stop["station_name"].map(
+        station_name_to_id)
+
+    api_data_train_stop.dropna(
+        subset=["train_service_id", "station_id"], inplace=True)
+
+    api_data_train_stop.drop(
+        columns=["service_uid", "station_name"], inplace=True)
+
+    api_data_train_stop["train_service_id"] = api_data_train_stop["train_service_id"].astype(
+        int)
+    api_data_train_stop["station_id"] = api_data_train_stop["station_id"].astype(
+        int)
+
+    db_stop_dict = {
+        (row.train_service_id, row.station_id): row
+        for row in database_data_train_stop.itertuples(index=False)
+    }
+
+    inserts = []
+    updates = []
+
+    for row in api_data_train_stop.itertuples(index=False):
+        key = (row.train_service_id, row.station_id)
+        api_values = row[2:]
+        if key not in db_stop_dict:
+            inserts.append((
+                row.train_service_id,
+                row.station_id,
+                row.scheduled_arr_time,
+                row.actual_arr_time,
+                row.scheduled_dep_time,
+                row.actual_dep_time,
+                row.platform,
+                row.platform_changed
+            ))
+        else:
+            db_row = db_stop_dict[key]
+            db_values = db_row[2:]
+            if api_values != db_values:
+                updates.append((
+                    row.train_service_id,
+                    row.station_id,
+                    row.scheduled_arr_time,
+                    row.actual_arr_time,
+                    row.scheduled_dep_time,
+                    row.actual_dep_time,
+                    row.platform,
+                    row.platform_changed
+                ))
+
+    try:
+        with conn.cursor() as cur:
+            if inserts:
+                execute_batch(cur, """
+                    INSERT INTO train_stop (
+                        train_service_id, station_id,
+                        scheduled_arr_time, actual_arr_time,
+                        scheduled_dep_time, actual_dep_time,
+                        platform, platform_changed
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                """, inserts)
+                logger.info("Inserted %d new train_stop rows.", len(inserts))
+
+            if updates:
+                execute_batch(cur, """
+                    UPDATE train_stop SET
+                        scheduled_arr_time = %s,
+                        actual_arr_time = %s,
+                        scheduled_dep_time = %s,
+                        actual_dep_time = %s,
+                        platform = %s,
+                        platform_changed = %s
+                    WHERE train_service_id = %s AND station_id = %s;
+                """, [(
+                    r[2],  # scheduled_arr_time
+                    r[3],  # actual_arr_time
+                    r[4],  # scheduled_dep_time
+                    r[5],  # actual_dep_time
+                    r[6],  # platform
+                    r[7],  # platform_changed
+                    r[0],  # train_service_id
+                    r[1]   # station_id
+                )
+                    for r in updates])
+                logger.info(
+                    "Updated %d existing train_stop rows.", len(updates))
+
+        conn.commit()
+    except DatabaseError as e:
+        conn.rollback()
+        logger.error("Database error during train_stop update: %s", e)
+        raise
+
+
 def load_data_into_database(api_data: DataFrame,
                             conn: Connection) -> None:
     """Load data into the database. """
@@ -344,6 +479,7 @@ def load_data_into_database(api_data: DataFrame,
     update_operator(api_data, conn)
     update_route(api_data, conn)
     update_train_service(api_data, conn)
+    update_train_stop(api_data, conn)
 
 
 if __name__ == "__main__":
