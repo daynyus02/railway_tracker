@@ -3,13 +3,13 @@
 import logging
 from os import environ as ENV
 
-import pandas as pd
 from pandas import DataFrame
 
 from dotenv import load_dotenv
-from psycopg2 import connect, OperationalError
+from psycopg2 import connect, DatabaseError
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import RealDictCursor
+from psycopg2.extras import execute_batch
 
 from extract import fetch_train_data
 from transform import transform_train_data
@@ -37,7 +37,7 @@ def get_connection() -> Connection:
         )
         logger.info("Successfully connected to database.")
         return conn
-    except OperationalError as e:
+    except DatabaseError as e:
         logger.error("Failed to connect to database: %s", e)
         raise
 
@@ -72,10 +72,10 @@ def load_data_from_database(conn: Connection) -> DataFrame:
         LEFT JOIN cancellation c ON tstop.train_stop_id = c.train_stop_id;
     """
 
-    with conn.cursor() as curs:
+    with conn.cursor() as cur:
         logger.info("Executing query...")
-        curs.execute(query)
-        rows = curs.fetchall()
+        cur.execute(query)
+        rows = cur.fetchall()
         logger.debug("Fetched %d rows from database.", len(rows))
         train_df = DataFrame(rows)
         logger.debug("DataFrame created.")
@@ -83,17 +83,58 @@ def load_data_from_database(conn: Connection) -> DataFrame:
     return train_df
 
 
-def load_data_into_database(data: DataFrame, conn: Connection) -> None:
+def update_stations(api_data: DataFrame, conn: Connection):
+    """Updates the database's station table."""
+    api_data_stations = api_data[[
+        "station_crs", "station_name"]].drop_duplicates()
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT station_crs, station_name FROM station")
+        rows = cur.fetchall()
+        database_data_stations = DataFrame(rows)
+
+    new_stations = api_data_stations[~api_data_stations["station_crs"].isin(
+        database_data_stations["station_crs"])]
+
+    if not new_stations.empty:
+        logger.info("Updating station table with %s new stations.",
+                    len(new_stations))
+        new_station_tuples = list(
+            new_stations.itertuples(index=False, name=None))
+        try:
+            with conn.cursor() as cur:
+                execute_batch(
+                    cur,
+                    """
+                    INSERT INTO station (station_crs, station_name) VALUES (%s, %s)
+                    """,
+                    new_station_tuples
+                )
+            conn.commit()
+            logger.info("Station table has been updated.")
+        except DatabaseError as e:
+            conn.rollback()
+            logger.error("Database error: %s", e)
+            raise
+
+    else:
+        logger.info("No new stations to add.")
+
+
+def load_data_into_database(api_data: DataFrame,
+                            database_data: DataFrame,
+                            conn: Connection) -> None:
     """Load data into the database. """
-    print(data)
+    update_stations(api_data, conn)
 
 
 if __name__ == "__main__":
     load_dotenv()
     with get_connection() as db_connection:
         logger.info("Connection established.")
-        # stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
-        # result = fetch_train_data(stations)
-        # transformed_data = transform_train_data(result)
-        # load_data_into_database(transformed_data, db_connection)
-        load_data_from_database(db_connection)
+        stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
+        fetched_data = fetch_train_data(stations)
+        transformed_fetched_data = transform_train_data(fetched_data)
+        database_train_data = load_data_from_database(db_connection)
+        load_data_into_database(transformed_fetched_data,
+                                database_train_data, db_connection)
