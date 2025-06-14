@@ -89,7 +89,7 @@ def update_stations(api_data: DataFrame, conn: Connection):
         "station_crs", "station_name"]].drop_duplicates()
 
     with conn.cursor() as cur:
-        cur.execute("SELECT station_crs, station_name FROM station")
+        cur.execute("SELECT station_crs, station_name FROM station;")
         rows = cur.fetchall()
         database_data_stations = DataFrame(rows)
 
@@ -106,7 +106,7 @@ def update_stations(api_data: DataFrame, conn: Connection):
                 execute_batch(
                     cur,
                     """
-                    INSERT INTO station (station_crs, station_name) VALUES (%s, %s)
+                    INSERT INTO station (station_crs, station_name) VALUES (%s, %s);
                     """,
                     new_station_tuples
                 )
@@ -121,11 +121,50 @@ def update_stations(api_data: DataFrame, conn: Connection):
         logger.info("No new stations to add.")
 
 
+def update_operator(api_data: DataFrame, conn: Connection):
+    """Updates the database's operator table."""
+    api_data_operators = api_data[[
+        "operator_name"]].drop_duplicates()
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT operator_name FROM operator;")
+        rows = cur.fetchall()
+        database_data_operators = DataFrame(rows)
+
+    new_operators = api_data_operators[~api_data_operators["operator_name"].isin(
+        database_data_operators["operator_name"])]
+
+    if not new_operators.empty:
+        logger.info("Updating operator table with %s new operators.",
+                    len(new_operators))
+        new_operator_tuples = list(
+            new_operators.itertuples(index=False, name=None))
+        try:
+            with conn.cursor() as cur:
+                execute_batch(
+                    cur,
+                    """
+                    INSERT INTO operator (operator_name) VALUES (%s);
+                    """,
+                    new_operator_tuples
+                )
+            conn.commit()
+            logger.info("Operator table has been updated.")
+        except DatabaseError as e:
+            conn.rollback()
+            logger.error("Database error: %s", e)
+            raise
+
+    else:
+        logger.info("No new operators to add.")
+
+
 def load_data_into_database(api_data: DataFrame,
                             database_data: DataFrame,
                             conn: Connection) -> None:
     """Load data into the database. """
     update_stations(api_data, conn)
+    update_operator(api_data, conn)
 
 
 if __name__ == "__main__":
