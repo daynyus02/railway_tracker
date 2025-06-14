@@ -83,8 +83,8 @@ def load_data_from_database(conn: Connection) -> DataFrame:
     return train_df
 
 
-def update_stations(api_data: DataFrame, conn: Connection):
-    """Updates the database's station table."""
+def update_station(api_data: DataFrame, conn: Connection):
+    """Updates database's station table."""
     api_data_stations = api_data[[
         "station_crs", "station_name"]].drop_duplicates()
 
@@ -122,7 +122,7 @@ def update_stations(api_data: DataFrame, conn: Connection):
 
 
 def update_operator(api_data: DataFrame, conn: Connection):
-    """Updates the database's operator table."""
+    """Updates database's operator table."""
     api_data_operators = api_data[[
         "operator_name"]].drop_duplicates()
 
@@ -159,12 +159,93 @@ def update_operator(api_data: DataFrame, conn: Connection):
         logger.info("No new operators to add.")
 
 
+def update_route(api_data: DataFrame, conn: Connection):
+    """Updates database's route table."""
+    api_data_route = api_data[[
+        "origin_name", "destination_name", "operator_name"]].drop_duplicates()
+
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT origin_station_id, destination_station_id, operator_id FROM route;")
+        rows = cur.fetchall()
+        database_data_route = DataFrame(rows)
+
+        cur.execute(
+            "SELECT station_id, station_crs, station_name FROM station;")
+        rows = cur.fetchall()
+        database_data_stations = DataFrame(rows)
+
+        cur.execute("SELECT operator_id, operator_name FROM operator;")
+        rows = cur.fetchall()
+        database_data_operators = DataFrame(rows)
+
+    station_name_to_id = dict(
+        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
+    operator_name_to_id = dict(zip(
+        database_data_operators["operator_name"], database_data_operators["operator_id"]))
+
+    api_data_route["origin_station_id"] = api_data_route["origin_name"].map(
+        station_name_to_id)
+    api_data_route["destination_station_id"] = api_data_route["destination_name"].map(
+        station_name_to_id)
+    api_data_route["operator_id"] = api_data_route["operator_name"].map(
+        operator_name_to_id)
+
+    api_data_route.dropna(
+        subset=["origin_station_id", "destination_station_id", "operator_id"], inplace=True)
+
+    api_data_route = api_data_route.drop(
+        columns=["origin_name", "destination_name", "operator_name"])
+
+    api_data_route["origin_station_id"] = api_data_route["origin_station_id"].astype(
+        int)
+    api_data_route["destination_station_id"] = api_data_route["destination_station_id"].astype(
+        int)
+    api_data_route["operator_id"] = api_data_route["operator_id"].astype(int)
+
+    database_data_route = set(
+        database_data_route.itertuples(index=False, name=None)
+    )
+
+    api_data_route = set(
+        api_data_route.itertuples(index=False, name=None)
+    )
+
+    new_routes = api_data_route - database_data_route
+
+    if new_routes:
+        logger.info("Updating route table with %s new routes.",
+                    len(new_routes))
+        new_route_tuples = list(new_routes)
+        try:
+            with conn.cursor() as cur:
+                execute_batch(
+                    cur,
+                    """
+                    INSERT INTO route (origin_station_id,
+                                       destination_station_id,
+                                       operator_id) 
+                    VALUES (%s, %s, %s);
+                    """,
+                    new_route_tuples
+                )
+            conn.commit()
+            logger.info("Route table has been updated.")
+        except DatabaseError as e:
+            conn.rollback()
+            logger.error("Database error: %s", e)
+            raise
+
+    else:
+        logger.info("No new routes to add.")
+
+
 def load_data_into_database(api_data: DataFrame,
-                            database_data: DataFrame,
                             conn: Connection) -> None:
     """Load data into the database. """
-    update_stations(api_data, conn)
+    update_station(api_data, conn)
     update_operator(api_data, conn)
+    update_route(api_data, conn)
 
 
 if __name__ == "__main__":
@@ -175,5 +256,4 @@ if __name__ == "__main__":
         fetched_data = fetch_train_data(stations)
         transformed_fetched_data = transform_train_data(fetched_data)
         database_train_data = load_data_from_database(db_connection)
-        load_data_into_database(transformed_fetched_data,
-                                database_train_data, db_connection)
+        load_data_into_database(transformed_fetched_data, db_connection)
