@@ -240,12 +240,110 @@ def update_route(api_data: DataFrame, conn: Connection):
         logger.info("No new routes to add.")
 
 
+def update_train_service(api_data: DataFrame, conn: Connection):
+    """Updates database's train_service table."""
+    api_data_train_service = api_data[[
+        "service_uid", "train_identity", "service_date",
+        "origin_name", "destination_name", "operator_name"
+    ]].drop_duplicates()
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """SELECT service_uid,
+                      train_identity,
+                      service_date,
+                      route_id
+               FROM train_service;"""
+        )
+        rows = cur.fetchall()
+        database_data_train_service = DataFrame(rows)
+
+        cur.execute(
+            "SELECT station_id, station_crs, station_name FROM station;")
+        rows = cur.fetchall()
+        database_data_stations = DataFrame(rows)
+
+        cur.execute("SELECT operator_id, operator_name FROM operator;")
+        rows = cur.fetchall()
+        database_data_operators = DataFrame(rows)
+
+        cur.execute(
+            "SELECT route_id, origin_station_id, destination_station_id, operator_id FROM route;")
+        rows = cur.fetchall()
+        database_data_routes = DataFrame(rows)
+
+    station_name_to_id = dict(
+        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
+    operator_name_to_id = dict(zip(
+        database_data_operators["operator_name"], database_data_operators["operator_id"]))
+
+    api_data_train_service["origin_station_id"] = api_data_train_service["origin_name"].map(
+        station_name_to_id)
+    api_data_train_service["destination_station_id"] = api_data_train_service["destination_name"].map(
+        station_name_to_id)
+    api_data_train_service["operator_id"] = api_data_train_service["operator_name"].map(
+        operator_name_to_id)
+
+    api_data_train_service.dropna(
+        subset=["origin_station_id", "destination_station_id", "operator_id"], inplace=True)
+
+    api_data_train_service = api_data_train_service.merge(
+        database_data_routes,
+        on=["origin_station_id", "destination_station_id", "operator_id"],
+        how="left"
+    )
+
+    api_data_train_service.drop(
+        columns=["origin_name", "destination_name", "operator_name",
+                 "origin_station_id", "destination_station_id", "operator_id"],
+        inplace=True
+    )
+
+    database_data_train_service = set(
+        database_data_train_service.itertuples(index=False, name=None)
+    )
+
+    api_data_train_service = set(
+        api_data_train_service.itertuples(index=False, name=None)
+    )
+
+    new_train_service = api_data_train_service - database_data_train_service
+
+    if new_train_service:
+        logger.info("Updating train_service table with %s new train services.",
+                    len(new_train_service))
+        new_train_service_tuples = list(new_train_service)
+        try:
+            with conn.cursor() as cur:
+                execute_batch(
+                    cur,
+                    """
+                    INSERT INTO train_service (service_uid,
+                                       train_identity,
+                                       service_date,
+                                       route_id) 
+                    VALUES (%s, %s, %s, %s);
+                    """,
+                    new_train_service_tuples
+                )
+            conn.commit()
+            logger.info("Train service table has been updated.")
+        except DatabaseError as e:
+            conn.rollback()
+            logger.error("Database error: %s", e)
+            raise
+
+    else:
+        logger.info("No new train services to add.")
+
+
 def load_data_into_database(api_data: DataFrame,
                             conn: Connection) -> None:
     """Load data into the database. """
     update_station(api_data, conn)
     update_operator(api_data, conn)
     update_route(api_data, conn)
+    update_train_service(api_data, conn)
 
 
 if __name__ == "__main__":
