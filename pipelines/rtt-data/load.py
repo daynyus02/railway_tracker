@@ -299,20 +299,17 @@ def update_train_service(api_data: DataFrame, conn: Connection):
         inplace=True
     )
 
-    database_data_train_service = set(
-        database_data_train_service.itertuples(index=False, name=None)
-    )
+    existing_service_uids = set(database_data_train_service['service_uid'])
 
-    api_data_train_service = set(
-        api_data_train_service.itertuples(index=False, name=None)
-    )
+    new_train_service = api_data_train_service[
+        ~api_data_train_service['service_uid'].isin(existing_service_uids)
+    ]
 
-    new_train_service = api_data_train_service - database_data_train_service
-
-    if new_train_service:
+    if not new_train_service.empty:
+        new_train_service_tuples = list(
+            new_train_service.itertuples(index=False, name=None))
         logger.info("Updating train_service table with %s new train services.",
-                    len(new_train_service))
-        new_train_service_tuples = list(new_train_service)
+                    len(new_train_service_tuples))
         try:
             with conn.cursor() as cur:
                 execute_batch(
@@ -332,7 +329,6 @@ def update_train_service(api_data: DataFrame, conn: Connection):
             conn.rollback()
             logger.error("Database error: %s", e)
             raise
-
     else:
         logger.info("No new train services to add.")
 
@@ -472,6 +468,89 @@ def update_train_stop(api_data: DataFrame, conn: Connection):
         raise
 
 
+def update_cancellation(api_data: DataFrame, conn: Connection):
+    """Updates database's cancellation table."""
+    api_data_cancellation = api_data[[
+        "service_uid", "station_name", "origin_name", "destination_name", "cancelled", "cancel_reason"
+    ]].drop_duplicates()
+
+    api_data_cancellation = api_data_cancellation[api_data_cancellation["cancelled"] == True]
+
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT train_stop_id,
+                   reason
+            FROM cancellation;
+        """)
+        rows = cur.fetchall()
+        database_data_cancellation = DataFrame(rows)
+
+        cur.execute("SELECT train_service_id, service_uid FROM train_service;")
+        rows = cur.fetchall()
+        database_data_train_services = DataFrame(rows)
+
+        cur.execute("""
+            SELECT train_stop_id, train_service_id, station_id
+            FROM train_stop;
+        """)
+        rows = cur.fetchall()
+        database_data_train_stop = DataFrame(rows)
+
+    service_uid_to_id = dict(zip(
+        database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
+
+    api_data_cancellation["train_service_id"] = api_data_cancellation["service_uid"].map(
+        service_uid_to_id)
+
+    api_data_cancellation.dropna(
+        subset=["train_service_id"], inplace=True)
+
+    api_data_cancellation = api_data_cancellation.merge(
+        database_data_train_stop,
+        on="train_service_id",
+        how="inner"
+    )
+
+    api_data_cancellation.drop(
+        columns=["service_uid", "station_name",
+                 "origin_name", "destination_name",
+                 "cancelled", "train_service_id", "station_id"], inplace=True)
+
+    api_data_cancellation = api_data_cancellation[[
+        "train_stop_id", "cancel_reason"]]
+    api_data_cancellation.rename(
+        columns={"cancel_reason": "reason"}, inplace=True)
+
+    database_data_cancellation = set(
+        database_data_cancellation.itertuples(index=False, name=None))
+    api_data_cancellation = set(
+        api_data_cancellation.itertuples(index=False, name=None))
+    new_cancellation = api_data_cancellation - database_data_cancellation
+
+    if new_cancellation:
+        new_cancellation_tuples = list(new_cancellation)
+        logger.info("Updating cancellation table with %s new cancellations.",
+                    len(new_cancellation_tuples))
+        try:
+            with conn.cursor() as cur:
+                execute_batch(
+                    cur,
+                    """
+                    INSERT INTO cancellation (train_stop_id, reason) 
+                    VALUES (%s, %s);
+                    """,
+                    new_cancellation_tuples
+                )
+            conn.commit()
+            logger.info("Cancellation table has been updated.")
+        except DatabaseError as e:
+            conn.rollback()
+            logger.error("Database error: %s", e)
+            raise
+    else:
+        logger.info("No new cancellations to add.")
+
+
 def load_data_into_database(api_data: DataFrame,
                             conn: Connection) -> None:
     """Load data into the database. """
@@ -480,6 +559,7 @@ def load_data_into_database(api_data: DataFrame,
     update_route(api_data, conn)
     update_train_service(api_data, conn)
     update_train_stop(api_data, conn)
+    update_cancellation(api_data, conn)
 
 
 if __name__ == "__main__":
