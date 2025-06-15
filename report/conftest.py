@@ -1,78 +1,88 @@
 """Fixtures for testing report files."""
 
+import datetime
+
 from pytest import fixture
+from psycopg2.extras import RealDictRow
 
 
 @fixture
 def test_valid_past_day_data():
     """List of dictionaries with valid data for get_days_data_per_station function."""
     return [
-        {
-            "train_stop_id": 1,
-            "train_service_id": 1,
-            "scheduled_arr_time": "09:00:00",
-            "actual_arr_time": "09:00:00",
-            "scheduled_dep_time": "09:02:00",
-            "actual_dep_time": "09:03:00",
-            "platform": 2,
-            "platform_changed": False,
-            "station_id": 1,
-            "station_name": "London Paddington",
-            "station_crs": "PAD",
-            "service_uid": "UID123",
-            "train_identity": "U123",
-            "service_date": "2025-06-10",
-            "route_id": 1
-        },
-        {
-            "train_stop_id": 4,
-            "train_service_id": 2,
-            "scheduled_arr_time": "10:00:00",
-            "actual_arr_time": "10:00:00",
-            "scheduled_dep_time": "10:02:00",
-            "actual_dep_time": "10:02:00",
-            "platform": 2,
-            "platform_changed": False,
-            "station_id": 1,
-            "station_name": "London Paddington",
-            "station_crs": "PAD",
-            "service_uid": "UID124",
-            "train_identity": "W123",
-            "service_date": "2025-06-10",
-            "route_id": 1
-        },
-        {
-            "train_stop_id": 7,
-            "train_service_id": 3,
-            "scheduled_arr_time": "11:00:00",
-            "actual_arr_time": "11:02:00",
-            "scheduled_dep_time": "11:02:00",
-            "actual_dep_time": "11:04:00",
-            "platform": 2,
-            "platform_changed": False,
-            "station_id": 1,
-            "station_name": "London Paddington",
-            "station_crs": "PAD",
-            "service_uid": "UID125",
-            "train_identity": "J123",
-            "service_date": "2025-06-10",
-            "route_id": 1
-        },
-        {
-            "train_stop_id": 10,
-            "train_service_id": 4,
-            "scheduled_arr_time": "12:00:00",
-            "actual_arr_time": "12:05:00",
-            "scheduled_dep_time": "12:02:00",
-            "actual_dep_time": "12:07:00",
-            "platform": 2,
-            "platform_changed": False,
-            "station_id": 1,
-            "station_name": "London Paddington",
-            "station_crs": "PAD",
-            "service_uid": "UID126",
-            "train_identity": "K123",
-            "service_date": "2025-06-10",
-            "route_id": 1
-        }
+        RealDictRow({
+            'train_stop_id': 108,
+            'train_service_id': 65,
+            'station_id': 11,
+            'scheduled_arr_time': datetime.time(21, 20),
+            'actual_arr_time': datetime.time(21, 18),
+            'scheduled_dep_time': datetime.time(21, 21),
+            'actual_dep_time': datetime.time(21, 21),
+            'platform': '2',
+            'platform_changed': False,
+            'station_name': 'Didcot Parkway',
+            'station_crs': 'DID',
+            'service_uid': 'G04992',
+            'train_identity': '1L90',
+            'service_date': datetime.date(2025, 6, 14),
+            'route_id': 9,
+            'cancellation_id': 13,
+            'reason': 'a problem with the train'
+        }),
+        RealDictRow({
+            'train_stop_id': 119,
+            'train_service_id': 73,
+            'station_id': 11,
+            'scheduled_arr_time': datetime.time(22, 20),
+            'actual_arr_time': datetime.time(22, 18),
+            'scheduled_dep_time': datetime.time(23, 45),
+            'actual_dep_time': datetime.time(23, 45),
+            'platform': '5',
+            'platform_changed': False,
+            'station_name': 'Didcot Parkway',
+            'station_crs': 'DID',
+            'service_uid': 'G05996',
+            'train_identity': '2P86',
+            'service_date': datetime.date(2025, 6, 14),
+            'route_id': 6,
+            'cancellation_id': None,
+            'reason': None
+        }),
+        RealDictRow({
+            'train_stop_id': 20,
+            'train_service_id': 27,
+            'station_id': 11,
+            'scheduled_arr_time': datetime.time(16, 26),
+            'actual_arr_time': datetime.time(16, 35),
+            'scheduled_dep_time': datetime.time(17, 8),
+            'actual_dep_time': datetime.time(17, 15),
+            'platform': '5', 'platform_changed': False,
+            'station_name': 'Didcot Parkway',
+            'station_crs': 'DID',
+            'service_uid': 'G05985',
+            'train_identity': '2P61',
+            'service_date': datetime.date(2025, 6, 14),
+            'route_id': 6,
+            'cancellation_id': None,
+            'reason': None
+        }),
+        RealDictRow({
+            'train_stop_id': 25,
+            'train_service_id': 29,
+            'station_id': 11,
+            'scheduled_arr_time': datetime.time(17, 20),
+            'actual_arr_time': datetime.time(17, 25),
+            'scheduled_dep_time': datetime.time(18, 38),
+            'actual_dep_time': datetime.time(18, 38),
+            'platform': '5',
+            'platform_changed': False,
+            'station_name': 'Didcot Parkway',
+            'station_crs': 'DID',
+            'service_uid': 'G05988',
+            'train_identity': '2P67',
+            'service_date': datetime.date(2025, 6, 14),
+            'route_id': 6,
+            'cancellation_id': None,
+            'reason': None
+        })
     ]

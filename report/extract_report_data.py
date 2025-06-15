@@ -67,6 +67,8 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
             USING (station_id)
             JOIN train_service
             USING (train_service_id)
+            LEFT JOIN cancellation
+            USING (train_stop_id)
             WHERE s.station_id = %s
             AND service_date = current_date - 1;
             """
@@ -79,6 +81,7 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
         if result:
             logging.info(
                 "Successfully retrieved past day's data for %s", station_crs)
+            result = [dict(row) for row in result]
         else:
             logging.warning("No past data retrieved for %s", station_crs)
         curs.close()
