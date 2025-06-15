@@ -41,14 +41,14 @@ def get_station_id_from_crs(station_crs: str, conn: Connection) -> int:
 
     with conn.cursor(cursor_factory=RealDictCursor) as curs:
 
-        curs.execute("SELECT * FROM station WHERE station_crs = %",
-                     station_crs.upper())
+        curs.execute("SELECT * FROM station WHERE station_crs = %s",
+                     (station_crs,))
         result = curs.fetchone()
 
         if result:
             logging.info(
                 "Successfully retrieved station ID for %s", station_crs)
-            result = result[0]
+            result = dict(result)["station_id"]
         else:
             logging.warning("No station ID retrieved for %s", station_crs)
         curs.close()
@@ -67,7 +67,7 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
             USING (station_id)
             JOIN train_service
             USING (train_service_id)
-            WHERE s.station_id = %
+            WHERE s.station_id = %s
             AND service_date = current_date - 1;
             """
 
