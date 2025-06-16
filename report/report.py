@@ -51,6 +51,8 @@ def get_email_message_as_string(pdf_bytes: bytes) -> str:
                           filename=f"Train summary report {dt.today}")
     msg.attach(attachment)
 
+    return msg
+
 
 if __name__ == "__main__":
     load_dotenv()
