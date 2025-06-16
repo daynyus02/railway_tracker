@@ -142,9 +142,23 @@ def insert_incidents(conn, data, route_id: int):
     logger.info("Inserted %s new incident records.", len(new_records))
 
 
+def load():
+    """Main load process."""
+    data = transform(extract())
+
+    operator_name = data["operators"].iloc[0].split(";")[0]
+
+    conn = get_connection()
+
+    try:
+        route_id = get_route_id(conn, "London Paddington",
+                                "Bristol Temple Meads", operator_name)
+        insert_incidents(conn, data, route_id)
+    finally:
+        conn.close()
+        logger.debug("Database connection closed.")
+
+
 if __name__ == "__main__":
     load_dotenv()
-    connection = get_connection()
-    get_route_id(connection, "London Paddington",
-                 "Bristol Temple Meads", "Great Western Railway")
-    connection.close()
+    load()
