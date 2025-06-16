@@ -29,6 +29,9 @@ def convert_timedelta_to_str(td: dt.timedelta) -> str:
     minutes = int((total_seconds % 3600) // 60)
     seconds = int(total_seconds % 60)
 
+    if td.days > 0:
+        return str(td).replace(",", "")
+
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 
@@ -120,7 +123,3 @@ def get_avg_arr_delay_delayed_trains(data: DataFrame) -> str:
     avg_delay = total_delays/len(delayed_trains)
 
     return convert_timedelta_to_str(avg_delay)
-
-
-if __name__ == "__main__":
-    ...

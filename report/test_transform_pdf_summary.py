@@ -27,7 +27,21 @@ def test_convert_timedelta_to_str_non_zero():
         td(days=0, hours=1, minutes=3, seconds=1)) == "01:03:01"
 
 
+def test_convert_timedelta_to_str_one_days():
+    """Tests that correct string returned from timedelta with 1 day."""
+
+    assert convert_timedelta_to_str(
+        td(days=1, hours=1, minutes=3, seconds=1)) == "1 day 1:03:01"
+
+
+def test_convert_timedelta_to_str_multiple_days():
+    """Tests that correct string returned from timedelta with 2 days."""
+
+    assert convert_timedelta_to_str(
+        td(days=2, hours=1, minutes=3, seconds=1)) == "2 days 1:03:01"
+
 # get_pct_trains_dep_delayed_five_mins() tests
+
 
 def test_get_pct_trains_dep_delayed_five_mins_returns_zero(past_day_data_no_delays):
     """Tests that zero is returned when no trains have departure delays at least five minutes."""
