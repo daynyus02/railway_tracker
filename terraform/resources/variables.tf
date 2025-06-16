@@ -69,3 +69,7 @@ variable "EMAIL" {
 variable "STATIONS" {
   type = string
 }
+
+variable "GW_URL" {
+  type = string
+}
