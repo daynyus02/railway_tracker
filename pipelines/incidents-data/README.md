@@ -23,7 +23,7 @@ This pipeline extracts train service data from the National Rail Incidents API a
 
 ### Example `.env`
 ```bash
-GW_URL = XXX
+INCIDENTS_URL = XXX
 ```
 
 ## Usage
