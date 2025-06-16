@@ -1,6 +1,5 @@
 """A script to transform data from the National Rail Incidents API."""
 
-from os import environ as ENV
 import logging
 import re
 
