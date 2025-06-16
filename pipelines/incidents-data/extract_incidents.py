@@ -1,5 +1,4 @@
-"""A script to extract data from the National Rail Incidents API.
-Only extracting for Great Western Railway Services."""
+"""A script to extract data from the National Rail Incidents API."""
 
 from os import environ as ENV
 import logging
@@ -22,7 +21,7 @@ logging.basicConfig(
 def get_incident_data() -> Response:
     """Fetches data from API."""
     logger.debug("Sending request to API.")
-    response = requests.get(ENV["GW_URL"], timeout=5)
+    response = requests.get(ENV["INCIDENTS_URL"], timeout=5)
     logger.info("Response status code: %s", response.status_code)
     return response
 
@@ -48,6 +47,10 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
 
     routes_affected = "".join(incident_xml.find(
         "inc:Affects/inc:RoutesAffected", namespaces=namespace).itertext()).strip()
+    operator_elements = incident_xml.findall(
+        "inc:Affects/inc:Operators/inc:AffectedOperator/inc:OperatorName", namespaces=namespace)
+    operators = ";".join(op.text.strip()
+                         for op in operator_elements if op.text)
 
     incident_data = {
         "start_time": start_time,
@@ -58,7 +61,8 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
         "is_planned": is_planned,
         "info_link": info_link,
         "summary": summary,
-        "routes_affected": routes_affected
+        "routes_affected": routes_affected,
+        "operators": operators
     }
     logger.info("Extraction for incident finished")
     return incident_data
