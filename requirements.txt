@@ -4,4 +4,5 @@ requests
 python-dotenv
 pandas
 pytest-cov
-psycopg2
+psycopg2-binary
+
