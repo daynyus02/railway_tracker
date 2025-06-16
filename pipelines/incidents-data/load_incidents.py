@@ -43,3 +43,7 @@ def get_operator_ids(conn: Connection, operator_name: str) -> int:
             raise ValueError(f"Could not find operator ID for {operator_name}")
 
     return operator
+
+
+def get_station_ids(conn: Connection) -> tuple[int, int]:
+    """Get the station id's for London Paddington and Bristol Temple Meads."""
