@@ -28,7 +28,6 @@ def get_incident_data() -> Response:
 
 def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
     """Extract data from an incident xml and store it in a dict."""
-    logger.debug("Beginning extraction for incident.")
 
     incident_number = incident_xml.findtext(
         "inc:IncidentNumber", namespaces=namespace)
@@ -64,7 +63,7 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
         "routes_affected": routes_affected,
         "operators": operators
     }
-    logger.info("Extraction for incident finished")
+
     return incident_data
 
 
@@ -79,10 +78,12 @@ def parse_xml(response: Response) -> list[dict]:
 
     root = ET.fromstring(response.text)
 
+    logger.debug("Extraction started.")
     for incident in root.findall("inc:PtIncident", namespaces=ns):
         incident_data = extract_relevant_data(ns, incident)
         incidents.append(incident_data)
 
+    logger.info("Extracted %s incidents", len(incidents))
     return incidents
 
 

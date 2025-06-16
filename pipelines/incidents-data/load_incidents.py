@@ -91,74 +91,102 @@ def get_route_id(conn: Connection, origin: str, destination: str, operator: str)
     return route[0]
 
 
-def get_existing_incident_keys(conn) -> set[tuple[str, str]]:
+def get_existing_incident_keys(conn: Connection) -> set[tuple[str, str]]:
     """Fetch all existing (incident_number, version_number) keys from the incident table."""
     with conn.cursor() as cur:
         cur.execute("SELECT incident_number, version_number FROM incident")
         return set(cur.fetchall())
 
 
-def insert_incidents(conn, data, route_id: int):
+def insert_incidents(conn: Connection, data: pd.DataFrame):
     """Insert incident data if it's not already in the database."""
     existing_keys = get_existing_incident_keys(conn)
+    inserted_count = 0
+    skipped_count = 0
 
-    new_records = []
     for _, row in data.iterrows():
         key = (row["incident_number"], row["version_number"])
         if key in existing_keys:
             logger.debug("Skipping duplicate incident %s", key)
+            skipped_count += 1
             continue
 
-        new_records.append((
-            route_id,
-            row["start_time"],
-            row["end_time"],
-            row["description"],
-            row["incident_number"],
-            row["version_number"],
-            row["is_planned"],
-            row["info_link"],
-            row["summary"]
-        ))
+        operator_names = [op.strip() for op in row["operators"].split(";")]
+        operator_ids = []
 
-    if not new_records:
-        logger.info("No new incidents to insert.")
-        return
+        for name in operator_names:
+            try:
+                operator_id = get_operator_id(conn, name)
+                operator_ids.append(operator_id)
+            except ValueError:
+                logger.warning(
+                    "Operator %s not found in database. Skipping.", name)
 
-    with conn.cursor() as cur:
-        execute_values(
-            cur,
-            """
+        if not operator_ids:
+            logger.warning(
+                "No valid operators for incident %s. Skipping.", key)
+            continue
+
+        try:
+            route_id = get_route_id(
+                conn, "London Paddington", "Bristol Temple Meads", operator_names[0])
+        except ValueError:
+            logger.warning(
+                "No valid route found for incident %s. Skipping.", key)
+            continue
+
+        with conn.cursor() as cur:
+            incident_query = """
             INSERT INTO incident (
                 route_id, start_time, end_time, description,
                 incident_number, version_number, is_planned,
                 info_link, summary
-            )
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING incident_id
+            ;
+            """
+
+            values = (route_id,
+                      row["start_time"],
+                      row["end_time"],
+                      row["description"],
+                      row["incident_number"],
+                      row["version_number"],
+                      row["is_planned"],
+                      row["info_link"],
+                      row["summary"])
+
+            cur.execute(incident_query, values)
+            inserted_count += 1
+
+            incident_id = cur.fetchone()[0]
+            assignment_values = [(incident_id, op_id)
+                                 for op_id in operator_ids]
+            assignment_query = """
+            INSERT INTO incident_operator_assignment
+                (incident_id, operator_id)
             VALUES %s
-            """,
-            new_records
-        )
+            ON CONFLICT DO NOTHING;
+            """
+            execute_values(cur, assignment_query, assignment_values)
+
     conn.commit()
-    logger.info("Inserted %s new incident records.", len(new_records))
+    logger.info("Inserted %s new incident records.", inserted_count)
+    logger.info("Skipped %s duplicated incidents.", skipped_count)
 
 
-def load():
+def load(data: pd.DataFrame):
     """Main load process."""
-    data = transform(extract())
-
-    operator_name = data["operators"].iloc[0].split(";")[0]
-
     conn = get_connection()
 
     try:
-        route_id = get_route_id(conn, "London Paddington",
-                                "Bristol Temple Meads", operator_name)
-        insert_incidents(conn, data, route_id)
+        insert_incidents(conn, data)
     finally:
         conn.close()
-        logger.debug("Database connection closed.")
 
 
 if __name__ == "__main__":
     load_dotenv()
-    load()
+    data = extract()
+    transformed = transform(data)
+    load(transformed)
