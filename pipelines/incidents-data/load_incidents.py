@@ -40,7 +40,7 @@ def get_operator_id(conn: Connection, operator_name: str) -> int:
 
         operator_id = cur.fetchone()
         if not operator_id:
-            logger.warning("Missing operator ID for %s.", operator_name)
+            logger.error("Missing operator ID for %s.", operator_name)
             raise ValueError(f"Could not find operator ID for {operator_name}")
 
     return operator_id[0]
@@ -55,7 +55,7 @@ def get_station_id(conn: Connection, station_name: str) -> int:
 
         station_id = cur.fetchone()
         if not station_id:
-            logger.warning("Missing station ID for %s.", station_name)
+            logger.error("Missing station ID for %s.", station_name)
             raise ValueError(f"Could not find station ID for {station_name}.")
 
     return station_id[0]
@@ -71,6 +71,23 @@ def get_route_id(conn: Connection, origin: str, destination: str, operator: str)
     operator_id = get_operator_id(conn, operator)
     logger.info("Fetched ids: origin: %s, destination: %s, operator: %s",
                 origin_station_id, destination_station_id, operator_id)
+
+    with conn.cursor() as cur:
+        q = """
+            SELECT route_id FROM route
+            WHERE origin_station_id = %s AND destination_station_id = %s AND operator_id = %s
+            ;
+            """
+        cur.execute(q, (origin_station_id, destination_station_id, operator_id))
+
+        route = cur.fetchone()
+        if not route:
+            logger.error("Missing route ID for %s to %s operated by %s.",
+                         origin, destination, operator)
+            raise ValueError("Could not find matching route.")
+
+    logging.info("Found route ID: %s", route)
+    return route[0]
 
 
 if __name__ == "__main__":
