@@ -48,7 +48,7 @@ def get_trains(response: dict) -> list[dict]:
 
 def extract_train_info(service: dict, name: str, crs: str) -> dict:
     """Extracts key train information fields from a single service dictionary."""
-    logger.debug("Extracting train info for services from %s", crs)
+    logger.info("Extracting train info for services from %s", crs)
     location_detail = service.get("locationDetail", {})
     origin = location_detail.get("origin", [{}])[0]
     destination = location_detail.get("destination", [{}])[0]
