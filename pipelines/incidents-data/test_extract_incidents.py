@@ -1,26 +1,11 @@
-"""Tests for extract.py"""
+"""Tests for extract_incidents.py"""
 
 from unittest.mock import Mock, patch
 import xml.etree.ElementTree as ET
 
-import pytest
-
-from extract_incidents import (is_paddington_to_bristol,
-                               extract_relevant_data, parse_xml, get_incident_data)
-
-# Test is_paddington_to_bristol
-
-
-@pytest.mark.parametrize("text,expected", [
-    ("between London Paddington and Bristol Temple Meads", True),
-    ("Between London Paddington and Reading / Bristol Temple Meads / Cheltenham", True),
-    ("between Reading and Bristol Temple Meads", False),
-    ("Paddington to Bristol", False),
-    ("from london paddington to bristol temple meads", True)
-])
-def test_is_paddington_to_bristol_valid_input(text, expected):
-    """Test that it correctly validates a paddington -> bristol line."""
-    assert is_paddington_to_bristol(text) == expected
+from extract_incidents import (extract_relevant_data,
+                               parse_xml,
+                               get_incident_data)
 
 
 # Test extract_relevant_data
@@ -45,24 +30,16 @@ def test_extract_relevant_data(sample_incident_xml_wrong_line):
         "version_number": "20250602082813",
         "is_planned": "true",
         "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
-        "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June"
+        "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
+        "routes_affected": "<p>from Exeter St Davids to Exmouth</p>"
     }
 
 
 # Test parse_xml
 
 
-def test_parse_xml_wrong_line(sample_incident_xml_wrong_line):
-    """Test that for an incident not on paddington -> bristol line, it is skipped over."""
-    mock_response = Mock()
-    mock_response.text = sample_incident_xml_wrong_line
-    result = parse_xml(mock_response)
-
-    assert not result
-
-
-def test_parse_xml_right_line(sample_incident_xml_right_line):
-    """Test that for an incident on paddington -> bristol line, it is in results."""
+def test_parse_xml_valid_xml_input(sample_incident_xml_right_line):
+    """Test that for an incident xml, it is in results."""
     mock_response = Mock()
     mock_response.text = sample_incident_xml_right_line
     result = parse_xml(mock_response)
