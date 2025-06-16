@@ -63,7 +63,7 @@ def get_pct_trains_cancelled(data: DataFrame) -> float:
 
 
 def get_avg_dep_delay_all_trains(data: DataFrame) -> str:
-    """Gets the average departure delay of all trains in %H/%M/%s."""
+    """Gets the average departure delay of all trains as %H:%M:%S string."""
 
     data = convert_train_times_to_date_times(data)
 
@@ -77,8 +77,8 @@ def get_avg_dep_delay_all_trains(data: DataFrame) -> str:
     return convert_timedelta_to_str(avg_delay)
 
 
-def get_avg_arr_delay_all_trains(data: DataFrame) -> float:
-    """Gets the average arrival delay of all trains."""
+def get_avg_arr_delay_all_trains(data: DataFrame) -> str:
+    """Gets the average arrival delay of all trains as %H:%M:%S string."""
 
     data = convert_train_times_to_date_times(data)
 
@@ -92,8 +92,8 @@ def get_avg_arr_delay_all_trains(data: DataFrame) -> float:
     return convert_timedelta_to_str(avg_delay)
 
 
-def get_avg_dep_delay_delayed_trains(data: DataFrame) -> float:
-    """Gets the average departure delay of trains delayed at least one minute."""
+def get_avg_dep_delay_delayed_trains(data: DataFrame) -> str:
+    """Gets the average departure delay of trains delayed at least one minute as %H:%M:%S string."""
 
     data = convert_train_times_to_date_times(data)
 
@@ -107,8 +107,8 @@ def get_avg_dep_delay_delayed_trains(data: DataFrame) -> float:
     return convert_timedelta_to_str(avg_delay)
 
 
-def get_avg_arr_delay_delayed_trains(data: DataFrame) -> float:
-    """Gets the average arrival delay of trains delayed at least one minute."""
+def get_avg_arr_delay_delayed_trains(data: DataFrame) -> str:
+    """Gets the average arrival delay of trains delayed at least one minute as %H:%M:%S string."""
 
     data = convert_train_times_to_date_times(data)
 
