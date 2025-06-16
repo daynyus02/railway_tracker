@@ -31,7 +31,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     df["start_time"] = pd.to_datetime(df["start_time"], utc=True)
     df["end_time"] = pd.to_datetime(df["end_time"], utc=True)
     df["is_planned"] = df["is_planned"].map(
-        {"true": True, "false": False}).fillna(False)
+        {"true": True, "false": False}).fillna(False).astype(bool)
 
     logging.debug(df.dtypes)
 
