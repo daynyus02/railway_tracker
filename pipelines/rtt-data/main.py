@@ -29,7 +29,7 @@ def run(stations: list[str]) -> None:
         load_data_into_database(transformed_fetched_data, db_connection)
 
 
-def lambda_handler(event=None, context=None):
+def lambda_handler(event=None, context=None) -> dict:
     """AWS Lambda handler that runs the ETL pipeline."""
     try:
         logger.info("Lambda triggered, running ETL.")
