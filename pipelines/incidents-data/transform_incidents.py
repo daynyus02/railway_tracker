@@ -49,4 +49,4 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
 if __name__ == "__main__":
     load_dotenv()
     data = extract()
-    transform(data)
+    transformed = transform(data)
