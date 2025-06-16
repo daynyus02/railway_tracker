@@ -122,6 +122,7 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
       DB_PORT      = var.DB_PORT
       API_USERNAME = var.API_USERNAME
       API_PASSWORD = var.API_PASSWORD
+      STATIONS     = var.STATIONS
     }
   }
 }

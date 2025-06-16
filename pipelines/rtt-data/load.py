@@ -4,7 +4,6 @@ import logging
 from os import environ as ENV
 
 from pandas import DataFrame
-
 from dotenv import load_dotenv
 from psycopg2 import connect, DatabaseError
 from psycopg2.extensions import connection as Connection
@@ -42,45 +41,162 @@ def get_connection() -> Connection:
         raise
 
 
-def load_data_from_database(conn: Connection) -> DataFrame:
-    """Loading all the data from the database."""
-    query = """
-        SELECT
-            ts.service_uid,
-            ts.train_identity,
-            s.station_name,
-            s.station_crs,
-            o_station.station_name AS origin_name,
-            d_station.station_name AS destination_name,
-            tstop.scheduled_arr_time,
-            tstop.actual_arr_time,
-            tstop.scheduled_dep_time,
-            tstop.actual_dep_time,
-            op.operator_name,
-            ts.service_date,
-            tstop.platform,
-            tstop.platform_changed,
-            CASE WHEN c.cancellation_id IS NOT NULL THEN TRUE ELSE FALSE END AS cancelled,
-            c.reason AS cancel_reason
-        FROM train_service ts
-        JOIN route r ON ts.route_id = r.route_id
-        JOIN station o_station ON r.origin_station_id = o_station.station_id
-        JOIN station d_station ON r.destination_station_id = d_station.station_id
-        JOIN train_stop tstop ON ts.train_service_id = tstop.train_service_id
-        JOIN station s ON tstop.station_id = s.station_id
-        JOIN operator op ON r.operator_id = op.operator_id
-        LEFT JOIN cancellation c ON tstop.train_stop_id = c.train_stop_id;
-    """
+def find_new_routes(api_data_route: DataFrame,
+                    database_data_route: DataFrame,
+                    database_data_stations: DataFrame,
+                    database_data_operators: DataFrame):
+    """Finds new routes to add to db."""
+    station_name_to_id = dict(
+        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
+    operator_name_to_id = dict(zip(
+        database_data_operators["operator_name"], database_data_operators["operator_id"]))
 
-    with conn.cursor() as cur:
-        logger.info("Executing query...")
-        cur.execute(query)
-        rows = cur.fetchall()
-        logger.debug("Fetched %d rows from database.", len(rows))
-        train_df = DataFrame(rows)
-        logger.debug("DataFrame created.")
-    logger.info("Successfully fetched data from database.")
-    return train_df
+    api_data_route["origin_station_id"] = api_data_route["origin_name"].map(
+        station_name_to_id)
+    api_data_route["destination_station_id"] = api_data_route["destination_name"].map(
+        station_name_to_id)
+    api_data_route["operator_id"] = api_data_route["operator_name"].map(
+        operator_name_to_id)
+
+    api_data_route.dropna(
+        subset=["origin_station_id", "destination_station_id", "operator_id"], inplace=True)
+
+    api_data_route = api_data_route.drop(
+        columns=["origin_name", "destination_name", "operator_name"])
+
+    api_data_route["origin_station_id"] = api_data_route["origin_station_id"].astype(
+        int)
+    api_data_route["destination_station_id"] = api_data_route["destination_station_id"].astype(
+        int)
+    api_data_route["operator_id"] = api_data_route["operator_id"].astype(int)
+
+    database_data_route = set(
+        database_data_route.itertuples(index=False, name=None)
+    )
+
+    api_data_route = set(
+        api_data_route.itertuples(index=False, name=None)
+    )
+
+    new_routes = api_data_route - database_data_route
+
+    return new_routes
+
+
+def find_new_train_services(api_data_train_service,
+                            database_data_train_service,
+                            database_data_stations,
+                            database_data_operators,
+                            database_data_routes):
+    """Finds new train services to add to db."""
+    station_name_to_id = dict(
+        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
+    operator_name_to_id = dict(zip(
+        database_data_operators["operator_name"], database_data_operators["operator_id"]))
+
+    api_data_train_service["origin_station_id"] = api_data_train_service["origin_name"].map(
+        station_name_to_id)
+    api_data_train_service["destination_station_id"] = api_data_train_service["destination_name"].map(
+        station_name_to_id)
+    api_data_train_service["operator_id"] = api_data_train_service["operator_name"].map(
+        operator_name_to_id)
+
+    api_data_train_service.dropna(
+        subset=["origin_station_id", "destination_station_id", "operator_id"], inplace=True)
+
+    api_data_train_service = api_data_train_service.merge(
+        database_data_routes,
+        on=["origin_station_id", "destination_station_id", "operator_id"],
+        how="left"
+    )
+
+    api_data_train_service.drop(
+        columns=["origin_name", "destination_name", "operator_name",
+                 "origin_station_id", "destination_station_id", "operator_id"],
+        inplace=True
+    )
+
+    existing_service_uids = set(database_data_train_service['service_uid'])
+
+    new_train_service = api_data_train_service[
+        ~api_data_train_service['service_uid'].isin(existing_service_uids)
+    ]
+
+    return new_train_service
+
+
+def map_api_train_stop_data(api_data_train_stop: DataFrame,
+                            database_data_train_services: DataFrame,
+                            database_data_stations):
+    """Mapping train_service_id and station_id to API train stop data."""
+    service_uid_to_id = dict(zip(
+        database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
+    station_name_to_id = dict(
+        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
+
+    api_data_train_stop["train_service_id"] = api_data_train_stop["service_uid"].map(
+        service_uid_to_id)
+    api_data_train_stop["station_id"] = api_data_train_stop["station_name"].map(
+        station_name_to_id)
+
+    api_data_train_stop.dropna(
+        subset=["train_service_id", "station_id"], inplace=True)
+
+    api_data_train_stop.drop(
+        columns=["service_uid", "station_name"], inplace=True)
+
+    api_data_train_stop["train_service_id"] = api_data_train_stop["train_service_id"].astype(
+        int)
+    api_data_train_stop["station_id"] = api_data_train_stop["station_id"].astype(
+        int)
+
+    api_data_train_stop = api_data_train_stop[[
+        "train_service_id", "station_id",
+        "scheduled_arr_time", "actual_arr_time",
+        "scheduled_dep_time", "actual_dep_time",
+        "platform", "platform_changed"
+    ]]
+
+    return api_data_train_stop
+
+
+def find_new_cancellations(api_data_cancellation,
+                           database_data_cancellation,
+                           database_data_train_services,
+                           database_data_train_stop):
+    """Finds new cancellations to add to db."""
+    service_uid_to_id = dict(zip(
+        database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
+
+    api_data_cancellation["train_service_id"] = api_data_cancellation["service_uid"].map(
+        service_uid_to_id)
+
+    api_data_cancellation.dropna(
+        subset=["train_service_id"], inplace=True)
+
+    api_data_cancellation = api_data_cancellation.merge(
+        database_data_train_stop,
+        on="train_service_id",
+        how="inner"
+    )
+
+    api_data_cancellation.drop(
+        columns=["service_uid", "station_name",
+                 "origin_name", "destination_name",
+                 "cancelled", "train_service_id", "station_id"], inplace=True)
+
+    api_data_cancellation = api_data_cancellation[[
+        "train_stop_id", "cancel_reason"]]
+    api_data_cancellation.rename(
+        columns={"cancel_reason": "reason"}, inplace=True)
+
+    database_data_cancellation = set(
+        database_data_cancellation.itertuples(index=False, name=None))
+    api_data_cancellation = set(
+        api_data_cancellation.itertuples(index=False, name=None))
+    new_cancellation = api_data_cancellation - database_data_cancellation
+
+    return new_cancellation
 
 
 def update_station(api_data: DataFrame, conn: Connection):
@@ -179,39 +295,8 @@ def update_route(api_data: DataFrame, conn: Connection):
         rows = cur.fetchall()
         database_data_operators = DataFrame(rows)
 
-    station_name_to_id = dict(
-        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
-    operator_name_to_id = dict(zip(
-        database_data_operators["operator_name"], database_data_operators["operator_id"]))
-
-    api_data_route["origin_station_id"] = api_data_route["origin_name"].map(
-        station_name_to_id)
-    api_data_route["destination_station_id"] = api_data_route["destination_name"].map(
-        station_name_to_id)
-    api_data_route["operator_id"] = api_data_route["operator_name"].map(
-        operator_name_to_id)
-
-    api_data_route.dropna(
-        subset=["origin_station_id", "destination_station_id", "operator_id"], inplace=True)
-
-    api_data_route = api_data_route.drop(
-        columns=["origin_name", "destination_name", "operator_name"])
-
-    api_data_route["origin_station_id"] = api_data_route["origin_station_id"].astype(
-        int)
-    api_data_route["destination_station_id"] = api_data_route["destination_station_id"].astype(
-        int)
-    api_data_route["operator_id"] = api_data_route["operator_id"].astype(int)
-
-    database_data_route = set(
-        database_data_route.itertuples(index=False, name=None)
-    )
-
-    api_data_route = set(
-        api_data_route.itertuples(index=False, name=None)
-    )
-
-    new_routes = api_data_route - database_data_route
+    new_routes = find_new_routes(
+        api_data_route, database_data_route, database_data_stations, database_data_operators)
 
     if new_routes:
         logger.info("Updating route table with %s new routes.",
@@ -272,38 +357,11 @@ def update_train_service(api_data: DataFrame, conn: Connection):
         rows = cur.fetchall()
         database_data_routes = DataFrame(rows)
 
-    station_name_to_id = dict(
-        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
-    operator_name_to_id = dict(zip(
-        database_data_operators["operator_name"], database_data_operators["operator_id"]))
-
-    api_data_train_service["origin_station_id"] = api_data_train_service["origin_name"].map(
-        station_name_to_id)
-    api_data_train_service["destination_station_id"] = api_data_train_service["destination_name"].map(
-        station_name_to_id)
-    api_data_train_service["operator_id"] = api_data_train_service["operator_name"].map(
-        operator_name_to_id)
-
-    api_data_train_service.dropna(
-        subset=["origin_station_id", "destination_station_id", "operator_id"], inplace=True)
-
-    api_data_train_service = api_data_train_service.merge(
-        database_data_routes,
-        on=["origin_station_id", "destination_station_id", "operator_id"],
-        how="left"
-    )
-
-    api_data_train_service.drop(
-        columns=["origin_name", "destination_name", "operator_name",
-                 "origin_station_id", "destination_station_id", "operator_id"],
-        inplace=True
-    )
-
-    existing_service_uids = set(database_data_train_service['service_uid'])
-
-    new_train_service = api_data_train_service[
-        ~api_data_train_service['service_uid'].isin(existing_service_uids)
-    ]
+    new_train_service = find_new_train_services(api_data_train_service,
+                                                database_data_train_service,
+                                                database_data_stations,
+                                                database_data_operators,
+                                                database_data_routes)
 
     if not new_train_service.empty:
         new_train_service_tuples = list(
@@ -342,21 +400,6 @@ def update_train_stop(api_data: DataFrame, conn: Connection):
     ]].drop_duplicates()
 
     with conn.cursor() as cur:
-        cur.execute("""
-            SELECT train_service_id,
-                   station_id,
-                   scheduled_arr_time,
-                   actual_arr_time,
-                   scheduled_dep_time,
-                   actual_dep_time,
-                   platform,
-                   platform_changed
-            FROM train_stop;     
-            """
-                    )
-        rows = cur.fetchall()
-        database_data_train_stop = DataFrame(rows)
-
         cur.execute("SELECT train_service_id, service_uid FROM train_service;")
         rows = cur.fetchall()
         database_data_train_services = DataFrame(rows)
@@ -365,103 +408,36 @@ def update_train_stop(api_data: DataFrame, conn: Connection):
         rows = cur.fetchall()
         database_data_stations = DataFrame(rows)
 
-    service_uid_to_id = dict(zip(
-        database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
-    station_name_to_id = dict(
-        zip(database_data_stations["station_name"], database_data_stations["station_id"]))
-
-    api_data_train_stop["train_service_id"] = api_data_train_stop["service_uid"].map(
-        service_uid_to_id)
-    api_data_train_stop["station_id"] = api_data_train_stop["station_name"].map(
-        station_name_to_id)
-
-    api_data_train_stop.dropna(
-        subset=["train_service_id", "station_id"], inplace=True)
-
-    api_data_train_stop.drop(
-        columns=["service_uid", "station_name"], inplace=True)
-
-    api_data_train_stop["train_service_id"] = api_data_train_stop["train_service_id"].astype(
-        int)
-    api_data_train_stop["station_id"] = api_data_train_stop["station_id"].astype(
-        int)
-
-    db_stop_dict = {
-        (row.train_service_id, row.station_id): row
-        for row in database_data_train_stop.itertuples(index=False)
-    }
-
-    inserts = []
-    updates = []
-
-    for row in api_data_train_stop.itertuples(index=False):
-        key = (row.train_service_id, row.station_id)
-        api_values = row[2:]
-        if key not in db_stop_dict:
-            inserts.append((
-                row.train_service_id,
-                row.station_id,
-                row.scheduled_arr_time,
-                row.actual_arr_time,
-                row.scheduled_dep_time,
-                row.actual_dep_time,
-                row.platform,
-                row.platform_changed
-            ))
-        else:
-            db_row = db_stop_dict[key]
-            db_values = db_row[2:]
-            if api_values != db_values:
-                updates.append((
-                    row.train_service_id,
-                    row.station_id,
-                    row.scheduled_arr_time,
-                    row.actual_arr_time,
-                    row.scheduled_dep_time,
-                    row.actual_dep_time,
-                    row.platform,
-                    row.platform_changed
-                ))
-
+    api_data_train_stop = map_api_train_stop_data(api_data_train_stop,
+                                                  database_data_train_services,
+                                                  database_data_stations)
     try:
         with conn.cursor() as cur:
-            if inserts:
-                execute_batch(cur, """
-                    INSERT INTO train_stop (
-                        train_service_id, station_id,
-                        scheduled_arr_time, actual_arr_time,
-                        scheduled_dep_time, actual_dep_time,
-                        platform, platform_changed
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-                """, inserts)
-                logger.info("Inserted %d new train_stop rows.", len(inserts))
-
-            if updates:
-                execute_batch(cur, """
-                    UPDATE train_stop SET
-                        scheduled_arr_time = %s,
-                        actual_arr_time = %s,
-                        scheduled_dep_time = %s,
-                        actual_dep_time = %s,
-                        platform = %s,
-                        platform_changed = %s
-                    WHERE train_service_id = %s AND station_id = %s;
-                """, [(
-                    r[2],  # scheduled_arr_time
-                    r[3],  # actual_arr_time
-                    r[4],  # scheduled_dep_time
-                    r[5],  # actual_dep_time
-                    r[6],  # platform
-                    r[7],  # platform_changed
-                    r[0],  # train_service_id
-                    r[1]   # station_id
+            execute_batch(cur, """
+                INSERT INTO train_stop (
+                    train_service_id,
+                    station_id,
+                    scheduled_arr_time,
+                    actual_arr_time,
+                    scheduled_dep_time,
+                    actual_dep_time,
+                    platform,
+                    platform_changed
                 )
-                    for r in updates])
-                logger.info(
-                    "Updated %d existing train_stop rows.", len(updates))
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (train_service_id, station_id)
+                DO UPDATE SET
+                    scheduled_arr_time = EXCLUDED.scheduled_arr_time,
+                    actual_arr_time = EXCLUDED.actual_arr_time,
+                    scheduled_dep_time = EXCLUDED.scheduled_dep_time,
+                    actual_dep_time = EXCLUDED.actual_dep_time,
+                    platform = EXCLUDED.platform,
+                    platform_changed = EXCLUDED.platform_changed;
+            """, list(api_data_train_stop.itertuples(index=False, name=None)))
 
         conn.commit()
+        logger.info("Updated %d rows into train_stop.",
+                    len(api_data_train_stop))
     except DatabaseError as e:
         conn.rollback()
         logger.error("Database error during train_stop update: %s", e)
@@ -496,36 +472,10 @@ def update_cancellation(api_data: DataFrame, conn: Connection):
         rows = cur.fetchall()
         database_data_train_stop = DataFrame(rows)
 
-    service_uid_to_id = dict(zip(
-        database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
-
-    api_data_cancellation["train_service_id"] = api_data_cancellation["service_uid"].map(
-        service_uid_to_id)
-
-    api_data_cancellation.dropna(
-        subset=["train_service_id"], inplace=True)
-
-    api_data_cancellation = api_data_cancellation.merge(
-        database_data_train_stop,
-        on="train_service_id",
-        how="inner"
-    )
-
-    api_data_cancellation.drop(
-        columns=["service_uid", "station_name",
-                 "origin_name", "destination_name",
-                 "cancelled", "train_service_id", "station_id"], inplace=True)
-
-    api_data_cancellation = api_data_cancellation[[
-        "train_stop_id", "cancel_reason"]]
-    api_data_cancellation.rename(
-        columns={"cancel_reason": "reason"}, inplace=True)
-
-    database_data_cancellation = set(
-        database_data_cancellation.itertuples(index=False, name=None))
-    api_data_cancellation = set(
-        api_data_cancellation.itertuples(index=False, name=None))
-    new_cancellation = api_data_cancellation - database_data_cancellation
+    new_cancellation = find_new_cancellations(api_data_cancellation,
+                                              database_data_cancellation,
+                                              database_data_train_services,
+                                              database_data_train_stop)
 
     if new_cancellation:
         new_cancellation_tuples = list(new_cancellation)
@@ -569,5 +519,4 @@ if __name__ == "__main__":
         stations = ['PAD', 'RDG', 'DID', 'SWI', 'CPM', 'BTH', 'BRI']
         fetched_data = fetch_train_data(stations)
         transformed_fetched_data = transform_train_data(fetched_data)
-        database_train_data = load_data_from_database(db_connection)
         load_data_into_database(transformed_fetched_data, db_connection)
