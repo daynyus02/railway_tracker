@@ -39,7 +39,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(
         "Found %s incidents between London Paddington and Bristol.", len(df))
 
-    df.drop(columns=['routes_affected'])
+    df = df.drop(columns=['routes_affected'])
 
     logger.info(df.head())
 

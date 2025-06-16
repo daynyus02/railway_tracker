@@ -1,8 +1,9 @@
-"""Tests for extract.py"""
+"""Tests for transform_incidents.py"""
 
 import pytest
+import pandas as pd
 
-from transform_incidents import (is_paddington_to_bristol)
+from transform_incidents import (is_paddington_to_bristol, transform)
 
 # Test is_paddington_to_bristol
 
