@@ -4,3 +4,4 @@ pytest
 pylint
 python-dotenv
 boto3
+reportlab
