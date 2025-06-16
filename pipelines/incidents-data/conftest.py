@@ -1,3 +1,6 @@
+# pylint: skip-file
+"""Fixtures for tests."""
+
 import pytest
 import pandas as pd
 

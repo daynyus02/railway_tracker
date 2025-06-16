@@ -33,7 +33,6 @@ def test_transform_filters_correctly(sample_extracted_data):
 def test_transform_types(sample_extracted_data):
     """Test that data types are converted properly."""
     transformed = transform(sample_extracted_data)
-    row = transformed.iloc[0]
 
     assert pd.api.types.is_datetime64_any_dtype(transformed["start_time"])
     assert pd.api.types.is_datetime64_any_dtype(transformed["end_time"])
