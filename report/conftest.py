@@ -123,7 +123,7 @@ def past_day_data_long_delays():
             'scheduled_arr_time': dt.time(21, 20),
             'actual_arr_time': dt.time(21, 29),
             'scheduled_dep_time': dt.time(21, 21),
-            'actual_dep_time': dt.time(21, 27),
+            'actual_dep_time': dt.time(21, 26),
             'cancellation_id': None,
             'reason': None
         },
@@ -180,7 +180,7 @@ def past_day_data_early():
         {
             'service_date': dt.date(2025, 6, 14),
             'scheduled_arr_time': dt.time(22, 20),
-            'actual_arr_time': dt.time(22, 22),
+            'actual_arr_time': dt.time(22, 23),
             'scheduled_dep_time': dt.time(23, 45),
             'actual_dep_time': dt.time(23, 48),
             'cancellation_id': None,
