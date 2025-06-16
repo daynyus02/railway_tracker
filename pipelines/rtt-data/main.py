@@ -21,7 +21,7 @@ load_dotenv()
 STATIONS = ENV["STATIONS"].split(",")
 
 
-def run(stations: list[str]):
+def run(stations: list[str]) -> None:
     """Run ETL."""
     with get_connection() as db_connection:
         fetched_data = fetch_train_data(stations)
