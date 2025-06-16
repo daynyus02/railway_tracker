@@ -13,7 +13,9 @@ from transform_incidents import (is_paddington_to_bristol, transform)
     ("Between London Paddington and Reading / Bristol Temple Meads / Cheltenham", True),
     ("between Reading and Bristol Temple Meads", False),
     ("Paddington to Bristol", False),
-    ("from london paddington to bristol temple meads", True)
+    ("from london paddington to bristol temple meads", True),
+    ("from londong paddington to reading", False),
+    ("From London Paddington to Reading / Bristol Temple Meads / Cheltenham", True),
 ])
 def test_is_paddington_to_bristol_valid_input(text, expected):
     """Test that it correctly validates a paddington -> bristol line."""
