@@ -70,6 +70,6 @@ variable "STATIONS" {
   type = string
 }
 
-variable "GW_URL" {
+variable "INCIDENTS_URL" {
   type = string
 }

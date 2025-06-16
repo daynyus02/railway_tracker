@@ -167,12 +167,12 @@ resource "aws_lambda_function" "incidents_pipeline_lambda" {
 
   environment {
     variables = {
-      DB_HOST     = var.DB_HOST
-      DB_NAME     = var.DB_NAME
-      DB_USER     = var.DB_USER
-      DB_PASSWORD = var.DB_PASSWORD
-      DB_PORT     = var.DB_PORT
-      GW_URL      = var.GW_URL
+      DB_HOST       = var.DB_HOST
+      DB_NAME       = var.DB_NAME
+      DB_USER       = var.DB_USER
+      DB_PASSWORD   = var.DB_PASSWORD
+      DB_PORT       = var.DB_PORT
+      INCIDENTS_URL = var.INCIDENTS_URL
     }
   }
 }
