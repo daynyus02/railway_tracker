@@ -1,8 +1,14 @@
+# pylint: skip-file
+"""Fixtures for tests."""
+
 import pytest
+import pandas as pd
 
 
 @pytest.fixture
 def sample_incident_xml_wrong_line():
+    """An incident example for an incident not on Paddington/Bristol line."""
+
     return """
     <Incidents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -53,6 +59,8 @@ def sample_incident_xml_wrong_line():
 
 @pytest.fixture
 def sample_incident_xml_right_line():
+    """An incident example for an incident which is on Paddington/Bristol line."""
+
     return """
     <Incidents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -99,3 +107,33 @@ def sample_incident_xml_right_line():
     </PtIncident>
     </Incidents>
     """
+
+
+@pytest.fixture
+def sample_extracted_data():
+    """A sample DataFrame like what extract() would return."""
+
+    return pd.DataFrame([
+        {
+            "start_time": "2025-06-09T00:00:00.000+01:00",
+            "end_time": "2025-06-13T23:59:00.000+01:00",
+            "description": "<p>The evening engineering work scheduled to take place between Exeter St Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
+            "incident_number": "001",
+            "version_number": "20250602082813",
+            "is_planned": "true",
+            "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
+            "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
+            "routes_affected": "<p>from Exeter St Davids to Exmouth</p>"
+        },
+        {
+            "start_time": "2025-06-09T00:00:00.000+01:00",
+            "end_time": "2025-06-13T23:59:00.000+01:00",
+            "description": "<p>The evening engineering work scheduled to take place between Exeter St Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
+            "incident_number": "002",
+            "version_number": "20250602082813",
+            "is_planned": "true",
+            "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
+            "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
+            "routes_affected": "<p>between London Paddington and Bristol Temple Meads</p>"
+        }
+    ])
