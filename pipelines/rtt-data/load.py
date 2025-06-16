@@ -4,7 +4,6 @@ import logging
 from os import environ as ENV
 
 from pandas import DataFrame
-
 from dotenv import load_dotenv
 from psycopg2 import connect, DatabaseError
 from psycopg2.extensions import connection as Connection
