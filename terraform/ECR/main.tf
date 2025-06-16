@@ -9,3 +9,9 @@ provider "aws" {
 resource "aws_ecr_repository" "rtt_pipeline_lambda_image_repo" {
   name = "c17-trains-ecr-rtt-pipeline"
 }
+
+# ECR Repository for Incidents pipeline image
+
+resource "aws_ecr_repository" "incidents_pipeline_lambda_image_repo" {
+  name = "c17-trains-ecr-incidents-pipeline"
+}

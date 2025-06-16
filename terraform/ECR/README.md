@@ -15,6 +15,10 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - `c17-trains-ecr-rtt-pipeline`
 - Hosts the image for the RTT pipeline lambda to run.
 
+#### ECR Repository:
+- `c17-trains-incidents-rtt-pipeline`
+- Hosts the image for the Incidents pipeline lambda to run.
+
 ## Provisioning Resources
 
 To provision resources run the following commands:
