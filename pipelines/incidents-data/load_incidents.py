@@ -91,25 +91,24 @@ def get_route_id(conn: Connection, origin: str, destination: str, operator: str)
     return route[0]
 
 
-def get_existing_incident_keys(conn: Connection) -> set[tuple[str, str]]:
-    """Fetch all existing (incident_number, version_number) keys from the incident table."""
+def get_existing_incident_keys(conn: Connection) -> dict[str, str]:
+    """Return a dict of incident_number -> version_number from the DB."""
     with conn.cursor() as cur:
         cur.execute("SELECT incident_number, version_number FROM incident")
-        return set(cur.fetchall())
+        return {row[0]: row[1] for row in cur.fetchall()}
 
 
 def insert_incidents(conn: Connection, data: pd.DataFrame):
     """Insert incident data if it's not already in the database."""
-    existing_keys = get_existing_incident_keys(conn)
+    existing_versions = get_existing_incident_keys(conn)
     inserted_count = 0
+    updated_count = 0
     skipped_count = 0
 
     for _, row in data.iterrows():
-        key = (row["incident_number"], row["version_number"])
-        if key in existing_keys:
-            logger.debug("Skipping duplicate incident %s", key)
-            skipped_count += 1
-            continue
+        incident_number = row["incident_number"]
+        version_number = row["version_number"]
+        key = (incident_number, version_number)
 
         operator_names = [op.strip() for op in row["operators"].split(";")]
         operator_ids = []
@@ -136,28 +135,69 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
             continue
 
         with conn.cursor() as cur:
-            incident_query = """
-            INSERT INTO incident (
-                route_id, start_time, end_time, description,
-                incident_number, version_number, is_planned,
-                info_link, summary
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING incident_id
-            ;
-            """
+            if incident_number not in existing_versions:
+                logger.debug("Inserting new incident.")
 
-            values = (route_id,
-                      row["start_time"],
-                      row["end_time"],
-                      row["description"],
-                      row["incident_number"],
-                      row["version_number"],
-                      row["is_planned"],
-                      row["info_link"],
-                      row["summary"])
+                insert_query = """
+                INSERT INTO incident (
+                    route_id, start_time, end_time, description,
+                    incident_number, version_number, is_planned,
+                    info_link, summary
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING incident_id
+                ;
+                """
 
-            cur.execute(incident_query, values)
-            inserted_count += 1
+                values = (route_id,
+                          row["start_time"],
+                          row["end_time"],
+                          row["description"],
+                          row["incident_number"],
+                          row["version_number"],
+                          row["is_planned"],
+                          row["info_link"],
+                          row["summary"])
+
+                cur.execute(insert_query, values)
+                inserted_count += 1
+                logger.info("Inserted new incident %s.", incident_number)
+
+            elif existing_versions[incident_number] != version_number:
+                update_query = """
+                    UPDATE incident
+                    SET route_id = %s,
+                        start_time = %s,
+                        end_time = %s,
+                        description = %s,
+                        version_number = %s,
+                        is_planned = %s,
+                        info_link = %s,
+                        summary = %s
+                    WHERE incident_number = %s
+                    RETURNING incident_id;
+                """
+
+                values = (
+                    route_id,
+                    row["start_time"],
+                    row["end_time"],
+                    row["description"],
+                    version_number,
+                    row["is_planned"],
+                    row["info_link"],
+                    row["summary"],
+                    incident_number
+                )
+
+                cur.execute(update_query, values)
+                updated_count += 1
+                logger.info("Updated incident %s to version %s.",
+                            incident_number, version_number)
+
+            else:
+                skipped_count += 1
+                logger.info("Skipping unchanged incident %s.", incident_number)
+                continue
 
             incident_id = cur.fetchone()[0]
             assignment_values = [(incident_id, op_id)
@@ -172,17 +212,15 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
 
     conn.commit()
     logger.info("Inserted %s new incident records.", inserted_count)
+    logger.info("Updated %s incidents.", updated_count)
     logger.info("Skipped %s duplicated incidents.", skipped_count)
 
 
 def load(data: pd.DataFrame):
     """Main load process."""
     conn = get_connection()
-
-    try:
-        insert_incidents(conn, data)
-    finally:
-        conn.close()
+    insert_incidents(conn, data)
+    conn.close()
 
 
 if __name__ == "__main__":
