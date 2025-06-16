@@ -2,6 +2,7 @@
 
 from os import environ as ENV
 import logging
+import re
 
 from dotenv import load_dotenv
 import pandas as pd
@@ -18,6 +19,12 @@ logger = logging.getLogger(__name__)
 
 ORIGIN = "London Paddington"
 DEST = "Bristol Temple Meads"
+
+
+def is_paddington_to_bristol(text: str) -> bool:
+    """Filters for trains between Paddington and Bristol Temple Meads."""
+    pattern = r'(between|from) London Paddington (and|to) .*Bristol Temple Meads'
+    return re.search(pattern, text, re.IGNORECASE) is not None
 
 
 def transform(df: pd.DataFrame) -> pd.DataFrame:
