@@ -55,6 +55,7 @@ CREATE TABLE train_stop (
     PRIMARY KEY (train_stop_id),
     FOREIGN KEY (station_id) REFERENCES station(station_id),
     FOREIGN KEY (train_service_id) REFERENCES train_service(train_service_id)
+    UNIQUE (train_service_id, station_id)
 );
 
 CREATE TABLE cancellation (
@@ -88,18 +89,3 @@ CREATE TABLE operator_incident_assignment (
     FOREIGN KEY (incident_id) REFERENCES incident(incident_id),
     FOREIGN KEY (operator_id) REFERENCES operator(operator_id)
 );
-
-INSERT INTO operator (operator_name) VALUES ('Great Western Railway');
-
-INSERT INTO station (station_name, station_crs) VALUES
-    ('London Paddington', 'PAD'),
-    ('Bristol Temple Meads', 'BRI'),
-    ('Bath Spa', 'BTH'),
-    ('Swindon', 'SWI'),
-    ('Reading', 'RDG'),
-    ('Chippenham', 'CPM'),
-    ('Paddington Crossrail', 'PAD'),
-    ('Didcot Parkway', 'DID')
-;
-
-INSERT INTO route (origin_station_id, destination_station_id, operator_id) VALUES (1, 2, 1);
