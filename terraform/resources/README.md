@@ -19,6 +19,7 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - DB_PORT - Database port.
 - API_USERNAME - RTT API username.
 - API_PASSWORD - RTT API password.
+- STATIONS - Comma separated list of stations to be loaded.
 
 ## Resources provisioned
 
