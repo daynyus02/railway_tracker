@@ -6,6 +6,7 @@ import logging
 from dotenv import load_dotenv
 import pandas as pd
 from psycopg2 import connect
+from psycopg2.extras import execute_values
 from psycopg2.extensions import connection as Connection
 
 from extract_incidents import extract
@@ -86,8 +87,59 @@ def get_route_id(conn: Connection, origin: str, destination: str, operator: str)
                          origin, destination, operator)
             raise ValueError("Could not find matching route.")
 
-    logging.info("Found route ID: %s", route)
+    logging.info("Found route ID: %s", route[0])
     return route[0]
+
+
+def get_existing_incident_keys(conn) -> set[tuple[str, str]]:
+    """Fetch all existing (incident_number, version_number) keys from the incident table."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT incident_number, version_number FROM incident")
+        return set(cur.fetchall())
+
+
+def insert_incidents(conn, data, route_id: int):
+    """Insert incident data if it's not already in the database."""
+    existing_keys = get_existing_incident_keys(conn)
+
+    new_records = []
+    for _, row in data.iterrows():
+        key = (row["incident_number"], row["version_number"])
+        if key in existing_keys:
+            logger.debug("Skipping duplicate incident %s", key)
+            continue
+
+        new_records.append((
+            route_id,
+            row["start_time"],
+            row["end_time"],
+            row["description"],
+            row["incident_number"],
+            row["version_number"],
+            row["is_planned"],
+            row["info_link"],
+            row["summary"]
+        ))
+
+    if not new_records:
+        logger.info("No new incidents to insert.")
+        return
+
+    with conn.cursor() as cur:
+        execute_values(
+            cur,
+            """
+            INSERT INTO incident (
+                route_id, start_time, end_time, description,
+                incident_number, version_number, is_planned,
+                info_link, summary
+            )
+            VALUES %s
+            """,
+            new_records
+        )
+    conn.commit()
+    logger.info("Inserted %s new incident records.", len(new_records))
 
 
 if __name__ == "__main__":
