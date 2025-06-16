@@ -17,9 +17,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-ORIGIN = "London Paddington"
-DEST = "Bristol Temple Meads"
-
 
 def is_paddington_to_bristol(text: str) -> bool:
     """Filters for trains between Paddington and Bristol Temple Meads."""
@@ -29,6 +26,8 @@ def is_paddington_to_bristol(text: str) -> bool:
 
 def transform(df: pd.DataFrame) -> pd.DataFrame:
     """Transform the data to be correct data types."""
+    df = df.copy()
+
     logging.debug("Transform started.")
     df["start_time"] = pd.to_datetime(df["start_time"], utc=True)
     df["end_time"] = pd.to_datetime(df["end_time"], utc=True)
@@ -36,6 +35,14 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
         {"true": True, "false": False}).fillna(False)
 
     logging.debug(df.dtypes)
+
+    df = df[df["routes_affected"].apply(is_paddington_to_bristol)]
+    logger.info(
+        "Found %s incidents between London Paddington and Bristol.", len(df))
+
+    df.drop(columns=['routes_affected'])
+
+    logger.info(df.head())
 
     return df
 

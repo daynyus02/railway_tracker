@@ -60,7 +60,7 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
         "summary": summary,
         "routes_affected": routes_affected
     }
-    logger.info("Incident data: %s", incident_data)
+    logger.info("Extraction for incident finished")
     return incident_data
 
 
