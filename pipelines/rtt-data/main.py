@@ -21,7 +21,7 @@ load_dotenv()
 STATIONS = ENV["STATIONS"].split(",")
 
 
-def run(stations: list[str]):
+def run(stations: list[str]) -> None:
     """Run ETL."""
     with get_connection() as db_connection:
         fetched_data = fetch_train_data(stations)
@@ -29,7 +29,7 @@ def run(stations: list[str]):
         load_data_into_database(transformed_fetched_data, db_connection)
 
 
-def lambda_handler(event=None, context=None):
+def lambda_handler(event=None, context=None) -> dict:
     """AWS Lambda handler that runs the ETL pipeline."""
     try:
         logger.info("Lambda triggered, running ETL.")

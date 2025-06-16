@@ -65,3 +65,11 @@ variable "API_PASSWORD" {
 variable "EMAIL" {
   type = string
 }
+
+variable "STATIONS" {
+  type = string
+}
+
+variable "INCIDENTS_URL" {
+  type = string
+}

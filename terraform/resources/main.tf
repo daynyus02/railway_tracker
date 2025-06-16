@@ -35,6 +35,17 @@ data "aws_ecr_image" "rtt_pipeline_lambda_image_version" {
   image_tag       = "latest"
 }
 
+# ECR Repository and image for incidents pipeline lambda
+
+data "aws_ecr_repository" "incidents_pipeline_lambda_image_repo" {
+  name = "c17-trains-ecr-incidents-pipeline"
+}
+
+data "aws_ecr_image" "incidents_pipeline_lambda_image_version" {
+  repository_name = data.aws_ecr_repository.incidents_pipeline_lambda_image_repo.name
+  image_tag       = "latest"
+}
+
 # SNS
 
 # SNS topic for RTT pipeline alerts
@@ -49,9 +60,21 @@ resource "aws_sns_topic_subscription" "rtt_pipeline_alerts_sub" {
   endpoint  = var.EMAIL
 }
 
+# SNS topic for incidents pipeline alerts
+
+resource "aws_sns_topic" "incidents_pipeline_alerts_topic" {
+  name = "c17-trains-sns-topic-incidents-pipeline-alerts"
+}
+
+resource "aws_sns_topic_subscription" "incidents_pipeline_alerts_sub" {
+  topic_arn = aws_sns_topic.incidents_pipeline_alerts_topic.arn
+  protocol  = "email"
+  endpoint  = var.EMAIL
+}
+
 # LAMBDA
 
-# Permissions for RTT pipeline lambda
+# Permissions for RTT and incidents pipeline lambda
 
 data "aws_iam_policy_document" "pipeline_lambda_role_trust_policy_doc" {
   statement {
@@ -82,7 +105,10 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
     actions = [
       "sns:Publish"
     ]
-    resources = [aws_sns_topic.rtt_pipeline_alerts_topic.arn]
+    resources = [
+      aws_sns_topic.rtt_pipeline_alerts_topic.arn,
+      aws_sns_topic.incidents_pipeline_alerts_topic.arn
+    ]
   }
 }
 
@@ -122,6 +148,31 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
       DB_PORT      = var.DB_PORT
       API_USERNAME = var.API_USERNAME
       API_PASSWORD = var.API_PASSWORD
+      STATIONS     = var.STATIONS
+    }
+  }
+}
+
+# Incidents Pipeline Lambda
+
+resource "aws_lambda_function" "incidents_pipeline_lambda" {
+  function_name = "c17-trains-lambda-incidents-pipeline"
+  description   = "Runs the Incidents ETL Pipeline every one hour. Triggered by an EventBridge."
+  role          = aws_iam_role.pipeline_lambda_role.arn
+  package_type  = "Image"
+  image_uri     = data.aws_ecr_image.incidents_pipeline_lambda_image_version.image_uri
+  timeout       = 240
+  memory_size   = 128
+  depends_on    = [aws_iam_role_policy_attachment.pipeline_lambda_role_policy_connection]
+
+  environment {
+    variables = {
+      DB_HOST       = var.DB_HOST
+      DB_NAME       = var.DB_NAME
+      DB_USER       = var.DB_USER
+      DB_PASSWORD   = var.DB_PASSWORD
+      DB_PORT       = var.DB_PORT
+      INCIDENTS_URL = var.INCIDENTS_URL
     }
   }
 }
@@ -179,6 +230,24 @@ resource "aws_scheduler_schedule" "rtt_pipeline_lambda_schedule" {
 
   target {
     arn      = aws_lambda_function.rtt_pipeline_lambda.arn
+    role_arn = aws_iam_role.scheduler_role.arn
+  }
+}
+
+# Scheduler for Incidents pipeline lambda
+
+resource "aws_scheduler_schedule" "incidents_pipeline_lambda_schedule" {
+  name       = "c17-trains-schedule-incidents-pipeline"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "cron(0 * * * ? *)"
+
+  target {
+    arn      = aws_lambda_function.incidents_pipeline_lambda.arn
     role_arn = aws_iam_role.scheduler_role.arn
   }
 }

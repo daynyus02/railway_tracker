@@ -1,10 +1,8 @@
-"""A script to extract data from the National Rail Incidents API.
-Only extracting for Great Western Railway Services."""
+"""A script to extract data from the National Rail Incidents API."""
 
 from os import environ as ENV
 import logging
 import xml.etree.ElementTree as ET
-import re
 
 from dotenv import load_dotenv
 import requests
@@ -23,19 +21,15 @@ logging.basicConfig(
 def get_incident_data() -> Response:
     """Fetches data from API."""
     logger.debug("Sending request to API.")
-    response = requests.get(ENV["GW_URL"], timeout=5)
+    response = requests.get(ENV["INCIDENTS_URL"], timeout=5)
     logger.info("Response status code: %s", response.status_code)
     return response
 
 
-def is_paddington_to_bristol(text: str) -> bool:
-    """Filters for trains between Paddington and Bristol Temple Meads."""
-    pattern = r'(between|from) London Paddington (and|to) .*Bristol Temple Meads'
-    return re.search(pattern, text, re.IGNORECASE) is not None
-
-
 def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
     """Extract data from an incident xml and store it in a dict."""
+    logger.debug("Beginning extraction for incident.")
+
     incident_number = incident_xml.findtext(
         "inc:IncidentNumber", namespaces=namespace)
     version_number = incident_xml.findtext("inc:Version", namespaces=namespace)
@@ -51,6 +45,13 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
     info_link = incident_xml.find(
         "inc:InfoLinks/inc:InfoLink/inc:Uri", namespaces=namespace).text.strip()
 
+    routes_affected = "".join(incident_xml.find(
+        "inc:Affects/inc:RoutesAffected", namespaces=namespace).itertext()).strip()
+    operator_elements = incident_xml.findall(
+        "inc:Affects/inc:Operators/inc:AffectedOperator/inc:OperatorName", namespaces=namespace)
+    operators = ";".join(op.text.strip()
+                         for op in operator_elements if op.text)
+
     incident_data = {
         "start_time": start_time,
         "end_time": end_time,
@@ -59,14 +60,16 @@ def extract_relevant_data(namespace: dict, incident_xml: ET) -> dict:
         "version_number": version_number,
         "is_planned": is_planned,
         "info_link": info_link,
-        "summary": summary
+        "summary": summary,
+        "routes_affected": routes_affected,
+        "operators": operators
     }
-    logger.info("Incident data: %s", incident_data)
+    logger.info("Extraction for incident finished")
     return incident_data
 
 
 def parse_xml(response: Response) -> list[dict]:
-    """Parse the XML response and filter incidents affecting Paddington to Bristol."""
+    """Parse the XML response and return incidents."""
     incidents = []
 
     ns = {
@@ -77,14 +80,8 @@ def parse_xml(response: Response) -> list[dict]:
     root = ET.fromstring(response.text)
 
     for incident in root.findall("inc:PtIncident", namespaces=ns):
-        routes_affected = incident.find(
-            "inc:Affects/inc:RoutesAffected", namespaces=ns)
-        routes_text = "".join(routes_affected.itertext()).strip()
-
-        if is_paddington_to_bristol(routes_text):
-            logger.info("Paddington to Bristol found: %s", routes_text)
-            incident_data = extract_relevant_data(ns, incident)
-            incidents.append(incident_data)
+        incident_data = extract_relevant_data(ns, incident)
+        incidents.append(incident_data)
 
     return incidents
 
@@ -92,12 +89,12 @@ def parse_xml(response: Response) -> list[dict]:
 def extract() -> pd.DataFrame:
     """Run extract process to get data from XML, and return it as a pandas dataframe."""
     res = get_incident_data()
-    relevant_incidents = parse_xml(res)
-    return pd.DataFrame(relevant_incidents)
+    incidents = parse_xml(res)
+    return pd.DataFrame(incidents)
 
 
 if __name__ == "__main__":
     load_dotenv()
 
     data = extract()
-    logging.info("Dataframe: %s", data)
+    logging.info("Extracted DataFrame: %s", data)

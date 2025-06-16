@@ -19,6 +19,8 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - DB_PORT - Database port.
 - API_USERNAME - RTT API username.
 - API_PASSWORD - RTT API password.
+- STATIONS - Comma separated list of stations to be loaded.
+- GW_URL - URL for the incidents API (Great Western Railway services only).
 
 ## Resources provisioned
 
@@ -26,13 +28,25 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - `c17-trains-sns-topic-rtt-pipeline-alerts`
 - For RTT pipeline alerts.
 
+#### SNS Topic:
+- `c17-trains-sns-topic-incidents-pipeline-alerts`
+- For incidents pipeline alerts.
+
 #### Lambda:
 - `c17-trains-lambda-rtt-pipeline`
 - Runs the RTT ETL pipeline.
 
+#### Lambda:
+- `c17-trains-lambda-incidents-pipeline`
+- Runs the incidents ETL pipeline.
+
 #### Scheduler:
 - `c17-trains-schedule-rtt-pipeline`
 - Schedules the RTT ETL pipeline lambda to run every 5 minutes.
+
+#### Scheduler:
+- `c17-trains-schedule-incidents-pipeline`
+- Schedules the incidents ETL pipeline lambda to run every 1 hour.
 
 ## Provisioning Resources
 
