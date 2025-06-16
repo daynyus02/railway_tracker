@@ -123,3 +123,17 @@ def get_avg_arr_delay_delayed_trains(data: DataFrame) -> str:
     avg_delay = total_delays/len(delayed_trains)
 
     return convert_timedelta_to_str(avg_delay)
+
+
+def get_station_summary(data: DataFrame) -> dict:
+    """Returns a dictionary for summary statistics for a train station."""
+
+    {
+        "% trains departing delayed by 5+ minutes": get_pct_trains_dep_delayed_five_mins(data),
+        "% trains arriving delayed by 5+ minutes": get_pct_trains_arr_delayed_five_mins(data),
+        "% trains cancelled": get_pct_trains_cancelled(data),
+        "Average departure delay (all trains)": get_avg_dep_delay_all_trains(data),
+        "Average arrival delay (all trains)": get_avg_arr_delay_all_trains(data),
+        "Average departure delay (delayed trains)": get_avg_dep_delay_delayed_trains(data),
+        "Average arrival delay (delayed trains)": get_avg_arr_delay_delayed_trains(data),
+    }

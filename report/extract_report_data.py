@@ -70,7 +70,7 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
             LEFT JOIN cancellation
             USING (train_stop_id)
             WHERE s.station_id = %s
-            AND service_date = current_date - 1;
+            AND service_date = current_date;
             """
 
     with conn.cursor(cursor_factory=RealDictCursor) as curs:

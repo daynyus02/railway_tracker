@@ -12,11 +12,13 @@ import boto3
 from reportlab.platypus import Paragraph, SimpleDocTemplate
 from reportlab.lib.styles import getSampleStyleSheet
 from pandas import DataFrame
+from dotenv import load_dotenv
 
-from extract_report_data import get_days_data_per_station
+from extract_report_data import get_days_data_per_station, get_db_connection
+from transform_pdf_summary import get_station_summary
 
 
-def generate_pdf(data: DataFrame) -> bytes:
+def generate_pdf(data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
@@ -24,11 +26,8 @@ def generate_pdf(data: DataFrame) -> bytes:
     styles = getSampleStyleSheet()
 
     pdf_elements = []
-    pdf_elements.append(Paragraph("Train Summary Report", styles["Heading1"]))
-    pdf_elements.append(Paragraph("Something", styles["BodyText"]))
-    pdf_elements.append(Paragraph("Something", styles["BodyText"]))
-    pdf_elements.append(Paragraph("Something else", styles["BodyText"]))
-    pdf_elements.append(Paragraph("Something further", styles["BodyText"]))
+    for key, value in data.items():
+        pdf_elements.append(f"{key}: {value}")
 
     report.build(pdf_elements)
 
@@ -54,4 +53,10 @@ def get_email_message_as_string(pdf_bytes: bytes) -> str:
 
 
 if __name__ == "__main__":
-    generate_pdf()
+    load_dotenv()
+
+    db_conn = get_db_connection()
+
+    data = DataFrame(get_days_data_per_station("DID", db_conn))
+    summary_data = get_station_summary(data)
+    generate_pdf(summary_data)
