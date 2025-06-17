@@ -20,8 +20,7 @@ def generate_pdf(station_crs: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
-    report = SimpleDocTemplate(
-        f"{station_crs} summary report {dt.today().strftime("%d-%m-%Y")}.pdf")
+    report = SimpleDocTemplate(pdf_buffer)
     styles = getSampleStyleSheet()
 
     styles['Title'].textColor = colors.HexColor("#df543b")
@@ -52,7 +51,7 @@ def get_email_message_as_string(station_crs: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_crs} summary report {dt.today().strftime("%d-%m-%Y")}.pdf")
+                          filename=f"{station_crs}_summary_report_{dt.today().strftime("%d-%m-%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
