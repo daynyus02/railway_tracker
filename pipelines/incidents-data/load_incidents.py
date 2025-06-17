@@ -95,6 +95,8 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
     operator_id_map = get_operator_id_map(conn)
     station_id_map = get_station_id_map(conn)
 
+    route_cache = {}
+
     inserted_count = 0
     updated_count = 0
     skipped_count = 0
@@ -121,13 +123,21 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                 "No valid operators for incident %s. Skipping.", key)
             continue
 
-        try:
-            route_id = get_route_id(conn, "London Paddington", "Bristol Temple Meads",
-                                    operator_names[0], station_id_map, operator_id_map)
-        except ValueError:
-            logger.warning(
-                "No valid route found for incident %s. Skipping.", key)
-            continue
+        route_key = ("London Paddington",
+                     "Bristol Temple Meads", operator_names[0])
+
+        if route_key in route_cache:
+            route_id = route_cache[route_key]
+            logger.info("Found cached route ID: %s.", route_id)
+        else:
+            try:
+                route_id = get_route_id(conn, "London Paddington", "Bristol Temple Meads",
+                                        operator_names[0], station_id_map, operator_id_map)
+                route_cache[route_key] = route_id
+            except ValueError:
+                logger.warning(
+                    "No valid route found for incident %s. Skipping.", key)
+                continue
 
         with conn.cursor() as cur:
             if incident_number not in existing_versions:
