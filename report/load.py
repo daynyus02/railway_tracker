@@ -60,7 +60,7 @@ def load_new_report(s3_client: client, station_name: str, data: dict) -> None:
     if not report_already_exists(s3_client, filename):
         pdf = generate_pdf(station_name, data)
         s3_client.put_object(
-            bucket=ENV["S3_BUCKET_NAME"], key=filename, Body=pdf)
+            Bucket=ENV["S3_BUCKET_NAME"], Key=filename, Body=pdf)
         logger.info("%s file successfully created in S3.", filename)
 
 
