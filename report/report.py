@@ -37,7 +37,7 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     return pdf_buffer.read()
 
 
-def get_email_message_as_string(pdf_bytes: bytes) -> str:
+def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
     """Gets the raw message string for summary email using PDF bytes."""
 
     msg = MIMEMultipart()
@@ -50,7 +50,7 @@ def get_email_message_as_string(pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"Train summary report {dt.today().strftime("%d/%m/%Y")}")
+                          filename=f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}")
     msg.attach(attachment)
 
     return msg
