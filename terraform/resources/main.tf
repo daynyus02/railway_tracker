@@ -46,6 +46,45 @@ data "aws_ecr_image" "incidents_pipeline_lambda_image_version" {
   image_tag       = "latest"
 }
 
+# ECR Repository and image for dashboard task definition
+
+data "aws_ecr_repository" "dashboard_td_image_repo" {
+  name = "c17-trains-ecr-dashboard"
+}
+
+data "aws_ecr_image" "dashboard_td_image_version" {
+  repository_name = data.aws_ecr_repository.dashboard_td_image_repo.name
+  image_tag       = "latest"
+}
+
+# ECS
+
+# Security Group
+
+resource "aws_security_group" "ecs_sg" {
+  name        = "c17-trains-ecs-sg"
+  description = "Allow HTTP access to dashboard."
+  vpc_id      = data.aws_vpc.c17_vpc.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "allow_rds_access" {
+  security_group_id = aws_security_group.ecs_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 5432
+  to_port           = 5432
+  ip_protocol       = "tcp"
+  description       = "Allow ECS to access RDS."
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_http" {
+  security_group_id = aws_security_group.ecs_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 8501
+  to_port           = 8501
+  ip_protocol       = "tcp"
+  description       = "Allow HTTP access from anywhere."
+}
+
 # LAMBDA
 
 # Permissions for RTT and incidents pipeline lambda
