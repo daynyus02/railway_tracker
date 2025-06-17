@@ -19,16 +19,17 @@ def get_connection():
 
 if __name__ == '__main__':
     load_dotenv()
-    ### Dashboard Setup ###
+######### Dashboard Setup #########
     st.set_page_config(
     page_title="Railway Tracker",
     page_icon="🚆",
     layout="wide"
     )
+    st.sidebar.image("your_logo.png", use_column_width=True)
     ### Fetching Data ###
-    QUERY = """SELECT * 
+    QUERY = """SELECT *
                FROM train_info_view 
-               WHERE (service_date + scheduled_dep_time) >= (NOW() - INTERVAL'1 minute');"""
+               WHERE (service_date + scheduled_dep_time) >= (NOW() - INTERVAL '1 minute');"""
     conn = get_connection()
     data = fetch_data(QUERY, conn)
     if not data.empty:
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
         st.title("🚆 Railway Tracker")
 
-        ### Filtering data based on user inputs ###
+######### Filtering data based on user inputs #########
         arrival_stations = sorted(data["station_name"].unique())
         destination_stations = sorted(data["destination_name"].unique())
         operators = sorted(data["operator_name"].unique())
@@ -63,11 +64,11 @@ if __name__ == '__main__':
         interruption_filter = st.sidebar.radio("Filter Interruption", ["All", "Delayed", "Cancelled"])
         if interruption_filter != "All":
             filtered_data = filtered_data[filtered_data['Status'] == interruption_filter]
-        ### Live train departure table ###
+######### Live train departure table #########
         styled_trains = make_live_train_table(filtered_data)
         st.subheader("Live Timetable 🚇:")
         st.dataframe(styled_trains, hide_index=True, height=210)
-        ### Summary Info ##€
+######### Summary Info #########
         st.markdown("### Summary Information 📊: ")
         delays = get_delays(data)
         filter_data(delays,selected_arrival, selected_destination, selected_operator)
@@ -83,6 +84,7 @@ if __name__ == '__main__':
             delay_number = delays["service_uid"].nunique()
             st.markdown(f"#### Delayed Stops: {delay_number}")
             st.markdown(f"#### Total Cancellations: {filtered_data[filtered_data["Status"] == "Cancelled"]["service_uid"].nunique()}")
+######### Cancelled trains pie chart and interruptions bar chart #########
         cancelled = get_cancelled_data(data)
         cancelled_pie_chart = make_cancellations_pie(cancelled)
         interruptions = get_interruption_data(data)
@@ -94,6 +96,7 @@ if __name__ == '__main__':
         with col2:
             st.markdown("### Interruptions per Operator:")
             st.altair_chart(interruptions_chart)
+######### Routes table #########
         routes = get_route_data(delays)
         col1,col2, col3 = st.columns([3,4,2])
         with col1:
