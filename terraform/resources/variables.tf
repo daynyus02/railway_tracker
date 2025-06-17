@@ -62,10 +62,6 @@ variable "API_PASSWORD" {
   type = string
 }
 
-variable "EMAIL" {
-  type = string
-}
-
 variable "STATIONS" {
   type = string
 }
