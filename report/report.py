@@ -18,7 +18,7 @@ from extract_report_data import get_days_data_per_station, get_db_connection
 from transform_pdf_summary import get_station_summary
 
 
-def generate_pdf(data: dict) -> bytes:
+def generate_pdf(station_name: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
@@ -26,8 +26,10 @@ def generate_pdf(data: dict) -> bytes:
     styles = getSampleStyleSheet()
 
     pdf_elements = []
+    pdf_elements.append(
+        Paragraph(f"OnTrack Summary Report, {dt.today().strftime("%d/%m/%Y")}, {station_name}", styles['Title']))
     for key, value in data.items():
-        pdf_elements.append(f"{key}: {value}")
+        pdf_elements.append(Paragraph(f"{key}: {value}", styles['BodyText']))
 
     report.build(pdf_elements)
 
@@ -48,7 +50,7 @@ def get_email_message_as_string(pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"Train summary report {dt.today}")
+                          filename=f"Train summary report {dt.today().strftime("%d/%m/%Y")}")
     msg.attach(attachment)
 
     return msg
@@ -61,5 +63,6 @@ if __name__ == "__main__":
 
     data = DataFrame(get_days_data_per_station("DID", db_conn)[:5])
     summary_data = get_station_summary(data[:5])
+    generate_pdf("Didcot Parkway", summary_data)
 
     db_conn.close()
