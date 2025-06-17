@@ -139,6 +139,8 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                     "No valid route found for incident %s. Skipping.", key)
                 continue
 
+        incident_id = None
+
         with conn.cursor() as cur:
             if incident_number not in existing_versions:
                 logger.debug("Inserting new incident.")
@@ -164,6 +166,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                           row["summary"])
 
                 cur.execute(insert_query, values)
+                incident_id = cur.fetchone()[0]
                 inserted_count += 1
                 logger.info("Inserted new incident %s.", incident_number)
 
@@ -196,6 +199,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                 )
 
                 cur.execute(update_query, values)
+                incident_id = cur.fetchone()[0]
                 updated_count += 1
                 logger.info("Updated incident %s to version %s.",
                             incident_number, version_number)
@@ -205,16 +209,16 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                 logger.info("Skipping unchanged incident %s.", incident_number)
                 continue
 
-            incident_id = cur.fetchone()[0]
-            assignment_values = [(incident_id, op_id)
-                                 for op_id in operator_ids]
-            assignment_query = """
-            INSERT INTO operator_incident_assignment
-                (incident_id, operator_id)
-            VALUES %s
-            ON CONFLICT DO NOTHING;
-            """
-            execute_values(cur, assignment_query, assignment_values)
+            if incident_id:
+                assignment_values = [(incident_id, op_id)
+                                     for op_id in operator_ids]
+                assignment_query = """
+                INSERT INTO operator_incident_assignment
+                    (incident_id, operator_id)
+                VALUES %s
+                ON CONFLICT DO NOTHING;
+                """
+                execute_values(cur, assignment_query, assignment_values)
 
     conn.commit()
     logger.info("Inserted %s new incidents.", inserted_count)
