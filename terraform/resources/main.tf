@@ -146,6 +146,12 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs_role" {
   policy_arn = data.aws_iam_policy.ecs_service.arn
 }
 
+# Log group
+
+resource "aws_cloudwatch_log_group" "dashboard_log_group" {
+  name = "/ecs/c17-trains-dashboard"
+}
+
 # Task Definition
 
 resource "aws_ecs_task_definition" "dashboard_td" {
@@ -158,11 +164,6 @@ resource "aws_ecs_task_definition" "dashboard_td" {
   task_role_arn            = aws_iam_role.ecs_task_exec_role.arn
   execution_role_arn       = aws_iam_role.ecs_task_exec_role.arn
 
-  runtime_platform {
-    operating_system_family = "LINUX"
-    cpu_architecture        = "X86_64"
-  }
-
   container_definitions = jsonencode([
     {
       name      = "dashboard"
@@ -170,6 +171,16 @@ resource "aws_ecs_task_definition" "dashboard_td" {
       cpu       = 256
       memory    = 512
       essential = true
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.dashboard_log_group.name
+          awslogs-region        = var.REGION
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+
       environment = [
         {
           name  = "DB_HOST"
@@ -197,6 +208,23 @@ resource "aws_ecs_task_definition" "dashboard_td" {
 }
 
 # ECS Service
+
+resource "aws_ecs_service" "dashboard_service" {
+  depends_on       = [aws_iam_role_policy_attachment.ecs_task_exec_ecs_role]
+  name             = "c17-trains-ecs-service-dashboard"
+  cluster          = data.aws_ecs_cluster.c17_ecs_cluster.id
+  task_definition  = aws_ecs_task_definition.dashboard_td.arn
+  desired_count    = 1
+  launch_type      = "FARGATE"
+  platform_version = "LATEST"
+  force_delete     = true
+
+  network_configuration {
+    subnets          = [data.aws_subnet.public_subnet_1.id, data.aws_subnet.public_subnet_2.id, data.aws_subnet.public_subnet_3.id]
+    security_groups  = [aws_security_group.ecs_sg.id]
+    assign_public_ip = true
+  }
+}
 
 # LAMBDA
 
