@@ -32,28 +32,35 @@ def get_connection() -> Connection:
     )
 
 
-def get_operator_id_map(conn: Connection) -> int:
+def get_operator_id_map(conn: Connection) -> dict[str, int]:
     """Return a dict mapping operator names to operator IDs."""
+    logger.debug("Fetching operator ID map.")
     with conn.cursor() as cur:
         cur.execute("SELECT operator_name, operator_id FROM operator")
         return {row[0]: row[1] for row in cur.fetchall()}
 
 
-def get_station_id_map(conn: Connection) -> int:
+def get_station_id_map(conn: Connection) -> dict[str, int]:
     """Return a dict mapping station names to station IDs."""
+    logger.debug("Fetching station ID map.")
     with conn.cursor() as cur:
         cur.execute("SELECT station_name, station_id FROM station")
         return {row[0]: row[1] for row in cur.fetchall()}
 
 
-def get_route_id(conn: Connection, origin: str, destination: str, operator: str) -> int:
+def get_route_id(conn: Connection, origin: str, destination: str, operator: str,
+                 station_id_map: dict[str, int], operator_id_map: dict[str, int]) -> int:
     """Get the route id for an origin, destination and operator."""
     logger.debug("Getting route id for: %s to %s, operated by %s.",
                  origin, destination, operator)
+    try:
+        origin_station_id = station_id_map[origin]
+        destination_station_id = station_id_map[destination]
+        operator_id = operator_id_map[operator]
+    except KeyError as e:
+        logger.error("Missing ID for route lookup: %s", e)
+        raise ValueError(f"Could not find ID for route lookup: {e}")
 
-    origin_station_id = get_station_id(conn, origin)
-    destination_station_id = get_station_id(conn, destination)
-    operator_id = get_operator_id(conn, operator)
     logger.info("Fetched ids: origin: %s, destination: %s, operator: %s",
                 origin_station_id, destination_station_id, operator_id)
 
@@ -85,11 +92,15 @@ def get_existing_incident_keys(conn: Connection) -> dict[str, str]:
 def insert_incidents(conn: Connection, data: pd.DataFrame):
     """Insert incident data if it's not already in the database."""
     existing_versions = get_existing_incident_keys(conn)
+    operator_id_map = get_operator_id_map(conn)
+    station_id_map = get_station_id_map(conn)
+
     inserted_count = 0
     updated_count = 0
     skipped_count = 0
 
     for _, row in data.iterrows():
+        logger.debug("Started handling an extracted incident.")
         incident_number = row["incident_number"]
         version_number = row["version_number"]
         key = (incident_number, version_number)
@@ -98,10 +109,10 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
         operator_ids = []
 
         for name in operator_names:
-            try:
-                operator_id = get_operator_id(conn, name)
+            operator_id = operator_id_map.get(name)
+            if operator_id:
                 operator_ids.append(operator_id)
-            except ValueError:
+            else:
                 logger.warning(
                     "Operator %s not found in database. Skipping.", name)
 
@@ -111,8 +122,8 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
             continue
 
         try:
-            route_id = get_route_id(
-                conn, "London Paddington", "Bristol Temple Meads", operator_names[0])
+            route_id = get_route_id(conn, "London Paddington", "Bristol Temple Meads",
+                                    operator_names[0], station_id_map, operator_id_map)
         except ValueError:
             logger.warning(
                 "No valid route found for incident %s. Skipping.", key)
@@ -147,6 +158,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                 logger.info("Inserted new incident %s.", incident_number)
 
             elif existing_versions[incident_number] != version_number:
+                logger.debug("Updating existing incident.")
                 update_query = """
                     UPDATE incident
                     SET route_id = %s,
