@@ -22,6 +22,13 @@ data "aws_subnet" "public_subnet_3" {
   id = var.SUBNET_ID_3
 }
 
+# S3 BUCKET
+
+resource "aws_s3_bucket" "s3_bucket" {
+    bucket = "c17-trains-bucket-reports"
+    force_destroy = true
+}
+
 # ECR
 
 # ECR Repository and image for RTT pipeline lambda
