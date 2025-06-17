@@ -46,32 +46,6 @@ data "aws_ecr_image" "incidents_pipeline_lambda_image_version" {
   image_tag       = "latest"
 }
 
-# SNS
-
-# SNS topic for RTT pipeline alerts
-
-resource "aws_sns_topic" "rtt_pipeline_alerts_topic" {
-  name = "c17-trains-sns-topic-rtt-pipeline-alerts"
-}
-
-resource "aws_sns_topic_subscription" "rtt_pipeline_alerts_sub" {
-  topic_arn = aws_sns_topic.rtt_pipeline_alerts_topic.arn
-  protocol  = "email"
-  endpoint  = var.EMAIL
-}
-
-# SNS topic for incidents pipeline alerts
-
-resource "aws_sns_topic" "incidents_pipeline_alerts_topic" {
-  name = "c17-trains-sns-topic-incidents-pipeline-alerts"
-}
-
-resource "aws_sns_topic_subscription" "incidents_pipeline_alerts_sub" {
-  topic_arn = aws_sns_topic.incidents_pipeline_alerts_topic.arn
-  protocol  = "email"
-  endpoint  = var.EMAIL
-}
-
 # LAMBDA
 
 # Permissions for RTT and incidents pipeline lambda
@@ -97,7 +71,7 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = ["arn:aws:logs:eu-west-2:${var.ACCOUNT_ID}:*"]
+    resources = ["*"]
   }
 
   statement {
@@ -105,10 +79,7 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
     actions = [
       "sns:Publish"
     ]
-    resources = [
-      aws_sns_topic.rtt_pipeline_alerts_topic.arn,
-      aws_sns_topic.incidents_pipeline_alerts_topic.arn
-    ]
+    resources = ["*"]
   }
 }
 
@@ -136,7 +107,7 @@ resource "aws_lambda_function" "rtt_pipeline_lambda" {
   package_type  = "Image"
   image_uri     = data.aws_ecr_image.rtt_pipeline_lambda_image_version.image_uri
   timeout       = 240
-  memory_size   = 128
+  memory_size   = 512
   depends_on    = [aws_iam_role_policy_attachment.pipeline_lambda_role_policy_connection]
 
   environment {
@@ -162,7 +133,7 @@ resource "aws_lambda_function" "incidents_pipeline_lambda" {
   package_type  = "Image"
   image_uri     = data.aws_ecr_image.incidents_pipeline_lambda_image_version.image_uri
   timeout       = 240
-  memory_size   = 128
+  memory_size   = 512
   depends_on    = [aws_iam_role_policy_attachment.pipeline_lambda_role_policy_connection]
 
   environment {

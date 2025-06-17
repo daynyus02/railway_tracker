@@ -18,13 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 def is_paddington_to_bristol(text: str) -> bool:
-    """Filters for trains between Paddington and Bristol Temple Meads."""
+    """Filters for trains between London Paddington and Bristol Temple Meads."""
     pattern = r'(between|from) London Paddington (and|to) .*Bristol Temple Meads'
     return re.search(pattern, text, re.IGNORECASE) is not None
 
 
 def transform(df: pd.DataFrame) -> pd.DataFrame:
-    """Transform the data to be correct data types."""
+    """Transform the data to be correct data types and route."""
     df = df.copy()
 
     logging.debug("Transform started.")
@@ -32,6 +32,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     df["end_time"] = pd.to_datetime(df["end_time"], utc=True)
     df["is_planned"] = df["is_planned"].map(
         {"true": True, "false": False}).fillna(False).astype(bool)
+    df["version_number"] = df["version_number"].astype(int)
 
     logging.debug(df.dtypes)
 

@@ -39,6 +39,7 @@ def test_transform_types(sample_extracted_data):
     assert pd.api.types.is_datetime64_any_dtype(transformed["start_time"])
     assert pd.api.types.is_datetime64_any_dtype(transformed["end_time"])
     assert pd.api.types.is_bool_dtype(transformed["is_planned"])
+    assert pd.api.types.is_integer_dtype(transformed["version_number"])
 
 
 def test_transform_columns(sample_extracted_data):

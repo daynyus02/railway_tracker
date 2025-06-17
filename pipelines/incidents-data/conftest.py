@@ -3,6 +3,7 @@
 
 import pytest
 import pandas as pd
+from unittest.mock import MagicMock
 
 
 @pytest.fixture
@@ -139,3 +140,40 @@ def sample_extracted_data():
             "operators": "Great Western Railway"
         }
     ])
+
+
+@pytest.fixture
+def sample_extracted_data_pad_bri():
+    """A sample DataFrame like what extract() would return, both entries with same operator and route."""
+
+    return pd.DataFrame([
+        {
+            "start_time": "2025-06-09T00:00:00.000+01:00",
+            "end_time": "2025-06-13T23:59:00.000+01:00",
+            "description": "<p>The evening engineering work scheduled to take place between Exeter St Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
+            "incident_number": "001",
+            "version_number": "20250602082813",
+            "is_planned": "true",
+            "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
+            "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
+            "routes_affected": "<p>between London Paddington and Bristol Temple Meads</p>",
+            "operators": "Great Western Railway"
+        },
+        {
+            "start_time": "2025-06-09T00:00:00.000+01:00",
+            "end_time": "2025-06-13T23:59:00.000+01:00",
+            "description": "<p>The evening engineering work scheduled to take place between Exeter St Davids and Exmouth on Monday to Thursday nights has been cancelled</p>",
+            "incident_number": "002",
+            "version_number": "20250602082813",
+            "is_planned": "true",
+            "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
+            "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
+            "routes_affected": "<p>between London Paddington and Bristol Temple Meads</p>",
+            "operators": "Great Western Railway"
+        }
+    ])
+
+
+@pytest.fixture
+def fake_conn():
+    return MagicMock()

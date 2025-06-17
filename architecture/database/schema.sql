@@ -34,12 +34,13 @@ CREATE TABLE route (
 
 CREATE TABLE train_service (
     train_service_id INT GENERATED ALWAYS AS IDENTITY,
-    service_uid VARCHAR(6) NOT NULL UNIQUE,
+    service_uid VARCHAR(6) NOT NULL,
     train_identity VARCHAR(4) NOT NULL,
     service_date DATE NOT NULL,
     route_id INT NOT NULL,
     PRIMARY KEY (train_service_id),
-    FOREIGN KEY (route_id) REFERENCES route(route_id)
+    FOREIGN KEY (route_id) REFERENCES route(route_id),
+    UNIQUE (service_uid, service_date)
 );
 
 CREATE TABLE train_stop (
