@@ -19,6 +19,7 @@ def get_connection():
 
 if __name__ == '__main__':
     load_dotenv()
+
 ######### Dashboard Setup #########
     st.set_page_config(
     page_title="Railway Tracker",
@@ -40,19 +41,31 @@ if __name__ == '__main__':
 
 ######### Filtering data based on user inputs #########
         arrival_stations = sorted(data["station_name"].unique())
-        destination_stations = sorted(data["destination_name"].unique())
-        operators = sorted(data["operator_name"].unique())
         col1, col2, col3 = st.columns(3)
         with col1:
-            selected_arrival = st.selectbox("Arrival", options=["All"] + list(arrival_stations))
+            selected_arrival = st.selectbox("Current Station", options=["All"] + arrival_stations)
         with col2:
-            selected_destination = st.selectbox("Destination", options=["All"] + list(destination_stations))
+            if selected_arrival != "All":
+                destination_subset = data[data["station_name"] == selected_arrival]
+            else:
+                destination_subset = data
+            destination_stations = sorted(destination_subset["destination_name"].unique())
+            selected_destination = st.selectbox("Destination", options=["All"] + destination_stations)
         with col3:
-            selected_operator = st.selectbox("Operator", options=["All"] + list(operators))
+            if selected_arrival != "All" and selected_destination != "All":
+                operator_subset = data[(data["station_name"] == selected_arrival)&(data["destination_name"] == selected_destination)]
+            elif selected_arrival != "All":
+                operator_subset = data[data["station_name"] == selected_arrival]
+            elif selected_destination != "All":
+                operator_subset = data[data["destination_name"] == selected_destination]
+            else:
+                operator_subset = data
+            operators = sorted(operator_subset["operator_name"].unique())
+            selected_operator = st.selectbox("Operator", options=["All"] + operators)
         filtered_data = filter_data(data, selected_arrival, selected_destination, selected_operator)
 
         selected_time_range = st.slider(
-        "Filter Departure Time",
+        "**Filter Departure Time:**",
         min_value=datetime.time(0, 0),
         max_value=datetime.time(23, 59),
         value=(datetime.time(0, 0), datetime.time(23, 59)),
@@ -64,10 +77,15 @@ if __name__ == '__main__':
         interruption_filter = st.sidebar.radio("Filter Interruption", ["All", "Delayed", "Cancelled"])
         if interruption_filter != "All":
             filtered_data = filtered_data[filtered_data['Status'] == interruption_filter]
+
 ######### Live train departure table #########
-        styled_trains = make_live_train_table(filtered_data)
+        if interruption_filter == "Cancelled":
+            styled_trains = make_live_train_table(filtered_data, True)
+        else:
+            styled_trains = make_live_train_table(filtered_data, False)
         st.subheader("Live Timetable 🚇:")
         st.dataframe(styled_trains, hide_index=True, height=210)
+
 ######### Summary Info #########
         st.markdown("### Summary Information 📊: ")
         delays = get_delays(data)
@@ -84,6 +102,7 @@ if __name__ == '__main__':
             delay_number = delays["service_uid"].nunique()
             st.markdown(f"#### Delayed Stops: {delay_number}")
             st.markdown(f"#### Total Cancellations: {filtered_data[filtered_data["Status"] == "Cancelled"]["service_uid"].nunique()}")
+
 ######### Cancelled trains pie chart and interruptions bar chart #########
         cancelled = get_cancelled_data(data)
         cancelled_pie_chart = make_cancellations_pie(cancelled)
@@ -96,6 +115,7 @@ if __name__ == '__main__':
         with col2:
             st.markdown("### Interruptions per Operator:")
             st.altair_chart(interruptions_chart)
+
 ######### Routes table #########
         routes = get_route_data(delays)
         col1,col2, col3 = st.columns([3,4,2])

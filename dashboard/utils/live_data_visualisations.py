@@ -26,7 +26,7 @@ def highlight_interruption(row) -> list[str]:
         colours[row.index.get_loc("Operator")] = highlight_operators(row)
     return colours
 
-def make_live_train_table(df):
+def make_live_train_table(df: pd.DataFrame, cancelled: bool):
     live_trains = df[[
         "service_uid",
         "station_name",
@@ -34,6 +34,7 @@ def make_live_train_table(df):
         "actual_arr_time",
         "actual_dep_time",
         "Status",
+        "cancel_reason",
         "platform",
         "operator_name"
     ]].copy()
@@ -43,9 +44,11 @@ def make_live_train_table(df):
         "station_name": "Arrival Station",
         "destination_name": "Destination",
         "platform": "Platform",
-        "operator_name": "Operator"
+        "operator_name": "Operator",
+        "cancel_reason": "Reason"
     }, inplace=True)
-
+    if not cancelled:
+        live_trains = live_trains.drop(columns=["Reason"])
     live_trains['Arrival Time'] = live_trains['actual_arr_time'].dt.time
     live_trains['Departure Time'] = live_trains['actual_dep_time'].dt.time
     live_trains = live_trains.drop(columns=["actual_dep_time", "actual_arr_time"])
