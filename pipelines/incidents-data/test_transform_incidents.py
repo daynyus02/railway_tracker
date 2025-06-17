@@ -51,7 +51,8 @@ def test_transform_columns(sample_extracted_data):
         "version_number",
         "is_planned",
         "info_link",
-        "summary"
+        "summary",
+        "operators"
     }
 
     transformed = transform(sample_extracted_data)

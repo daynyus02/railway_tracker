@@ -71,11 +71,11 @@ def convert_time_columns(data: DataFrame) -> DataFrame:
 
     def convert_hhmm_to_time(time_string) -> time:
         if pd.isna(time_string) or time_string == '':
-            return pd.NaT
+            return None
         try:
             return datetime.strptime(time_string, '%H%M').time()
         except ValueError:
-            return pd.NaT
+            return None
 
     for col in time_columns:
         logger.debug("Changing %s column to have correct time format.", col)

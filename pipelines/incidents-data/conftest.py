@@ -123,7 +123,8 @@ def sample_extracted_data():
             "is_planned": "true",
             "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
             "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
-            "routes_affected": "<p>from Exeter St Davids to Exmouth</p>"
+            "routes_affected": "<p>from Exeter St Davids to Exmouth</p>",
+            "operators": "Great Western Railway"
         },
         {
             "start_time": "2025-06-09T00:00:00.000+01:00",
@@ -134,6 +135,7 @@ def sample_extracted_data():
             "is_planned": "true",
             "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
             "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
-            "routes_affected": "<p>between London Paddington and Bristol Temple Meads</p>"
+            "routes_affected": "<p>between London Paddington and Bristol Temple Meads</p>",
+            "operators": "Great Western Railway"
         }
     ])

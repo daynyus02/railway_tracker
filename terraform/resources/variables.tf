@@ -69,3 +69,7 @@ variable "EMAIL" {
 variable "STATIONS" {
   type = string
 }
+
+variable "INCIDENTS_URL" {
+  type = string
+}

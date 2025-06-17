@@ -9,6 +9,7 @@ from pandas import DataFrame, concat
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 def fetch_station_json(crs: str) -> dict:
     """Fetches JSON data from the Realtime Trains API for a given CRS code."""
     if not isinstance(crs, str):
@@ -16,12 +17,14 @@ def fetch_station_json(crs: str) -> dict:
         raise ValueError("The CRS must be a string.")
     url = f"https://api.rtt.io/api/v1/json/search/{crs}"
     try:
-        response = requests.get(url=url, auth=(ENV["API_USERNAME"], ENV["API_PASSWORD"]), timeout=5)
+        response = requests.get(url=url, auth=(
+            ENV["API_USERNAME"], ENV["API_PASSWORD"]), timeout=5)
         logger.info("Successfully connected to '%s'", url)
         return response.json()
     except requests.exceptions.RequestException:
         logger.exception("Request failed for CRS: %s.", crs)
         raise
+
 
 def get_station_name(response: dict) -> str | None:
     """Returns the station name from the api response."""
@@ -33,6 +36,7 @@ def get_station_name(response: dict) -> str | None:
     logger.warning("No location data found in response.")
     return None
 
+
 def get_trains(response: dict) -> list[dict]:
     """Extracts the list of train services from the API response."""
     services = response.get('services', [])
@@ -41,14 +45,15 @@ def get_trains(response: dict) -> list[dict]:
     logger.info("Train services successfully retrieved from API.")
     return services
 
+
 def extract_train_info(service: dict, name: str, crs: str) -> dict:
     """Extracts key train information fields from a single service dictionary."""
-    logger.debug("Extracting train info for services from %s", crs)
+    logger.info("Extracting train info for services from %s", crs)
     location_detail = service.get("locationDetail", {})
     origin = location_detail.get("origin", [{}])[0]
     destination = location_detail.get("destination", [{}])[0]
 
-    service_info =  {'service_uid': service.get('serviceUid'),
+    service_info = {'service_uid': service.get('serviceUid'),
                     'train_identity': service.get("trainIdentity"),
                     'station_name': name,
                     'station_crs': crs,
@@ -64,14 +69,19 @@ def extract_train_info(service: dict, name: str, crs: str) -> dict:
                     'platform_changed': location_detail.get("platformChanged"),
                     'cancelled': bool(location_detail.get('cancelReasonCode')),
                     'cancel_reason': location_detail.get('cancelReasonLongText'),
-                    'service_type' : service.get("serviceType")
+                    'service_type': service.get("serviceType")
                     }
 
-    logger.info("Extracted train info for service '%s'", service_info.get('service_uid'))
+    logger.info("Extracted train info for service '%s'",
+                service_info.get('service_uid'))
     return service_info
 
-def make_train_info_list(train_list: list[dict], name:str, crs: str) -> list[dict]:
+
+def make_train_info_list(train_list: list[dict] | None, name: str, crs: str) -> list[dict]:
     """Processes a list of train services to extract structured information."""
+    if not train_list:
+        logger.warning("No train data found for station: %s (%s)", name, crs)
+        return []
     return [extract_train_info(train, name, crs) for train in train_list]
 
 
@@ -86,6 +96,7 @@ def get_service_dataframe(crs: str) -> DataFrame:
     logger.info("Created dataframe for %s with %d records.", crs, len(df))
     return df
 
+
 def fetch_train_data(station_list: list[list]) -> DataFrame:
     """Returns a dataframe of services from the stations in a given list."""
     logger.debug("Fetching service data for stations: %s", station_list)
@@ -95,6 +106,7 @@ def fetch_train_data(station_list: list[list]) -> DataFrame:
     aggregated_df = concat(station_dfs, ignore_index=True)
     logger.info("Fetched service data for %d stations.", len(station_list))
     return aggregated_df
+
 
 if __name__ == "__main__":
     load_dotenv()

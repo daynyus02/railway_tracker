@@ -31,7 +31,8 @@ def test_extract_relevant_data(sample_incident_xml_wrong_line):
         "is_planned": "true",
         "info_link": "https://www.nationalrail.co.uk/engineering-works/23-40-exd-exm-20250609/",
         "summary": "CANCELLED: Engineering work between Exeter St Davids and Exmouth from Monday 9 to Friday 13 June",
-        "routes_affected": "<p>from Exeter St Davids to Exmouth</p>"
+        "routes_affected": "<p>from Exeter St Davids to Exmouth</p>",
+        "operators": "Great Western Railway"
     }
 
 
@@ -53,7 +54,7 @@ def test_parse_xml_valid_xml_input(sample_incident_xml_right_line):
 def test_get_incident_data():
     """Patch requests and test that it calls correctly."""
     with patch("requests.get") as mock_get, \
-            patch.dict("os.environ", {"GW_URL": "URL"}):
+            patch.dict("os.environ", {"INCIDENTS_URL": "URL"}):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "<PiIncident></PiIncident>"
