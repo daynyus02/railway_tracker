@@ -383,7 +383,8 @@ resource "aws_iam_role_policy" "eventbridge_invoke_lambda_policy" {
         Action = "lambda:InvokeFunction"
         Effect = "Allow"
         Resource = [
-          aws_lambda_function.rtt_pipeline_lambda.arn
+          aws_lambda_function.rtt_pipeline_lambda.arn,
+          aws_lambda_function.incidents_pipeline_lambda.arn
         ]
       }
     ]
