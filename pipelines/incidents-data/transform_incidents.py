@@ -32,6 +32,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     df["end_time"] = pd.to_datetime(df["end_time"], utc=True)
     df["is_planned"] = df["is_planned"].map(
         {"true": True, "false": False}).fillna(False).astype(bool)
+    df["version_number"] = df["version_number"].astype(int)
 
     logging.debug(df.dtypes)
 

@@ -1,8 +1,8 @@
 """Tests for load_incidents.py"""
 
-import pytest
-import pandas as pd
 from unittest.mock import patch
+
+import pytest
 
 from load_incidents import (get_operator_id_map,
                             get_station_id_map,
@@ -41,7 +41,8 @@ def test_get_route_id_success(fake_conn):
     cursor.fetchone.return_value = [15]
 
     route_id = get_route_id(fake_conn, "London Paddington",
-                            "Bristol Temple Meads", "Great Western Railway", station_map, operator_map)
+                            "Bristol Temple Meads", "Great Western Railway",
+                            station_map, operator_map)
 
     assert route_id == 15
 
@@ -66,10 +67,10 @@ def test_get_route_id_missing_operator_id(fake_conn):
 
 def test_route_caching(sample_extracted_data, fake_conn):
     """Test that get_route_id is only called if the route isn't cached."""
-
     with patch("load_incidents.get_route_id", return_value=1) as mock_get_route_id, \
             patch("load_incidents.get_existing_incident_keys", return_value={}), \
-            patch("load_incidents.get_operator_id_map", return_value={"Great Western Railway": 1}), \
+            patch("load_incidents.get_operator_id_map",
+                  return_value={"Great Western Railway": 1}), \
             patch("load_incidents.get_station_id_map", return_value={
                 "London Paddington": 1,
                 "Bristol Temple Meads": 2

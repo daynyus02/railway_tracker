@@ -59,7 +59,7 @@ def get_route_id(conn: Connection, origin: str, destination: str, operator: str,
         operator_id = operator_id_map[operator]
     except KeyError as e:
         logger.error("Missing ID for route lookup: %s", e)
-        raise ValueError(f"Could not find ID for route lookup: {e}")
+        raise ValueError(f"Could not find ID for route lookup: {e}") from e
 
     logger.info("Fetched ids: origin: %s, destination: %s, operator: %s",
                 origin_station_id, destination_station_id, operator_id)
@@ -163,7 +163,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                           row["info_link"],
                           row["summary"])
 
-                # cur.execute(insert_query, values)
+                cur.execute(insert_query, values)
                 inserted_count += 1
                 logger.info("Inserted new incident %s.", incident_number)
 
@@ -195,7 +195,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                     incident_number
                 )
 
-                # cur.execute(update_query, values)
+                cur.execute(update_query, values)
                 updated_count += 1
                 logger.info("Updated incident %s to version %s.",
                             incident_number, version_number)
@@ -205,16 +205,16 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                 logger.info("Skipping unchanged incident %s.", incident_number)
                 continue
 
-            # incident_id = cur.fetchone()[0]
-            # assignment_values = [(incident_id, op_id)
-            #                      for op_id in operator_ids]
-            # assignment_query = """
-            # INSERT INTO incident_operator_assignment
-            #     (incident_id, operator_id)
-            # VALUES %s
-            # ON CONFLICT DO NOTHING;
-            # """
-            # execute_values(cur, assignment_query, assignment_values)
+            incident_id = cur.fetchone()[0]
+            assignment_values = [(incident_id, op_id)
+                                 for op_id in operator_ids]
+            assignment_query = """
+            INSERT INTO operator_incident_assignment
+                (incident_id, operator_id)
+            VALUES %s
+            ON CONFLICT DO NOTHING;
+            """
+            execute_values(cur, assignment_query, assignment_values)
 
     conn.commit()
     logger.info("Inserted %s new incidents.", inserted_count)
@@ -230,6 +230,6 @@ def load(data: pd.DataFrame):
 
 if __name__ == "__main__":
     load_dotenv()
-    data = extract()
-    transformed = transform(data)
+    extracted = extract()
+    transformed = transform(extracted)
     load(transformed)
