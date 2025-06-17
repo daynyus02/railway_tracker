@@ -1,19 +1,21 @@
+"""Contains the streamlit code to run the live dashboard."""
 from os import environ as ENV
 import datetime
 from dotenv import load_dotenv
 import streamlit as st
 import psycopg2
 
-from visualisations import highlight_operators, highlight_interruption, make_live_train_table, make_cancellations_pie, make_interruptions_bar
+from visualisations import make_live_train_table, make_cancellations_pie, make_interruptions_bar
 from dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data, get_route_data, get_interruption_data
 
 def get_connection():
-    conn = psycopg2.connect(host=ENV['DB_HOST'],
+    """Returns a psycopg2 connection to the RDS database."""
+    connection = psycopg2.connect(host=ENV['DB_HOST'],
                             port=ENV['DB_PORT'],
                             dbname=ENV['DB_NAME'],
                             user=ENV['DB_USER'],
                             password=ENV['DB_PASSWORD'])
-    return conn
+    return connection
 
 if __name__ == '__main__':
     load_dotenv()
@@ -24,9 +26,11 @@ if __name__ == '__main__':
     layout="wide"
     )
     ### Fetching Data ###
-    query = "SELECT * FROM train_info_view"
+    QUERY = """SELECT * 
+               FROM train_info_view 
+               WHERE (service_date + scheduled_dep_time) >= NOW() - INTERVAL'1 minute';"""
     conn = get_connection()
-    data = fetch_data(query, conn)
+    data = fetch_data(QUERY, conn)
     convert_times_to_datetime(data)
     add_status_column(data)
 
@@ -55,38 +59,29 @@ if __name__ == '__main__':
     start, end = selected_time_range
     filtered_data = filtered_data[
     (filtered_data['scheduled_dep_time'].dt.time >= start) & (filtered_data['scheduled_dep_time'].dt.time <= end)]
-    
     interruption_filter = st.sidebar.radio("Filter Interruption", ["All", "Delayed", "Cancelled"])
     if interruption_filter != "All":
         filtered_data = filtered_data[filtered_data['Status'] == interruption_filter]
-
     ### Live train departure table ###
     styled_trains = make_live_train_table(filtered_data)
     st.subheader("Live Timetable 🚇:")
     st.dataframe(styled_trains, hide_index=True, height=210)
-
     ### Summary Info ##€
     st.markdown("### Summary Information 📊: ")
-
     delays = get_delays(data)
     filter_data(delays,selected_arrival, selected_destination, selected_operator)
     delays = add_delay_time(delays)
-
     col1, col2 = st.columns(2)
-
     with col1:
         st.markdown(f"#### Total departures: {filtered_data["service_uid"].nunique()}")
-
         if not delays.empty:
             st.markdown(f"#### Avg. Delay Time: {round(delays["delay_time"].mean())} minutes")
         else:
             st.markdown("#### Avg. Delay Time: 0")
-
     with col2:
         delay_number = delays["service_uid"].nunique()
         st.markdown(f"#### Delayed Stops: {delay_number}")
         st.markdown(f"#### Total Cancellations: {filtered_data[filtered_data["Status"] == "Cancelled"]["service_uid"].nunique()}")
-    
     cancelled = get_cancelled_data(data)
     cancelled_pie_chart = make_cancellations_pie(cancelled)
     interruptions = get_interruption_data(data)
@@ -98,19 +93,17 @@ if __name__ == '__main__':
     with col2:
         st.markdown("### Interruptions per Operator:")
         st.altair_chart(interruptions_chart)
-    
     routes = get_route_data(delays)
-
     col1,col2, col3 = st.columns([3,4,2])
     with col1:
         st.markdown("### Most Delayed Routes:")
     with col3:
         number_shown = st.radio('',["5", "10", "25", "50"], horizontal=True)
-    if number_shown == "5": 
+    if number_shown == "5":
         st.dataframe(routes.head(5), hide_index=True)
-    elif number_shown == "10": 
+    elif number_shown == "10":
         st.dataframe(routes.head(10), hide_index=True)
-    elif number_shown == "25": 
+    elif number_shown == "25":
         st.dataframe(routes.head(25), hide_index=True)
-    elif number_shown == "50": 
+    elif number_shown == "50":
         st.dataframe(routes.head(50), hide_index=True)
