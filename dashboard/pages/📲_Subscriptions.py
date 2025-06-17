@@ -2,9 +2,9 @@ import streamlit as st
 
 st.title("Subscribe: ")
 with st.form("subscriptions"):
-    st.write("Pick a station:")
-    st.checkbox("Great Western Railway")
-    st.checkbox("Elizabeth line")
+    st.write("Please select a route: ")
+    st.selectbox("Great Western Railway")
+    st.selectbox("Elizabeth line")
     st.write("Subscribe to a service:")
     email = st.text_input("Email address")
 

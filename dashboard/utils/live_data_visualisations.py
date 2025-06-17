@@ -36,7 +36,7 @@ def make_live_train_table(df):
         "Status",
         "platform",
         "operator_name"
-    ]]
+    ]].copy()
 
     live_trains.rename(columns={
         "service_uid": "Service ID",
@@ -78,3 +78,4 @@ def make_interruptions_bar(df: pd.DataFrame) -> alt.Chart:
                 alt.Tooltip('percentage_of_trains', title="% of trains")]
     ).properties(width=100)
     return interruptions_chart
+

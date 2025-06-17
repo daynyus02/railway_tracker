@@ -1,17 +1,20 @@
 """Data manipulation functions for the live dashboard."""
 import pandas as pd
 import numpy as np
+import streamlit as st
 
-def fetch_data(query, conn) -> pd.DataFrame:
+@st.cache_resource
+def fetch_data(query, _conn) -> pd.DataFrame:
     """Returns a dataframe given a query and connection."""
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    df = pd.read_sql_query(query, _conn)
+    _conn.close()
     return df
 
 ### Transforming data ###
 def convert_times_to_datetime(df) -> None:
     for col in ['actual_arr_time','scheduled_arr_time', 'actual_dep_time','scheduled_dep_time']:
-        df[col] = pd.to_datetime(df[col], format='%H:%M:%S')
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], format='%H:%M:%S')
 
 def add_status_column(df) -> None:
     conditions = [(df['cancelled'] == True),
@@ -33,6 +36,7 @@ def filter_data(df: pd.DataFrame, selected_arrival: str, selected_destination:st
     return filtered_data
 
 ### Displaying delay info ###
+@st.cache_data
 def get_delays(df: pd.DataFrame) -> pd.DataFrame:
     delays = df[["Status",
                  "service_uid",
@@ -53,17 +57,20 @@ def add_delay_time(df: pd.DataFrame) -> None:
     df["delay_time"] = df["delay_time"].dt.total_seconds() // 60
     return df
 
+@st.cache_data
 def get_cancelled_data(df: pd.DataFrame) -> pd.DataFrame:
     cancelled = df[["service_uid","operator_name", "Status"]].copy()
     cancelled = cancelled.groupby(["operator_name","Status"])["service_uid"].nunique().reset_index(name="Count")
     return cancelled[cancelled["Status"]=="Cancelled"].rename(columns={"operator_name": "Operator"})
 
+@st.cache_data
 def get_interruption_data(df:pd.DataFrame) -> pd.DataFrame:
     interruptions = df[["service_uid","operator_name", "Status"]].copy()
     interruptions = interruptions.groupby(["operator_name", "Status"])["service_uid"].nunique().reset_index()
     interruptions["percentage_of_trains"] = (interruptions["service_uid"]*100 / interruptions.groupby('operator_name')['service_uid'].transform('sum')).round(1)
     return interruptions
 
+@st.cache_data
 def get_route_data(df:pd.DataFrame) -> pd.DataFrame:
     routes = df.groupby(["origin_name", "destination_name"]).agg(
         delayed_count=("delay_time", "size"),
