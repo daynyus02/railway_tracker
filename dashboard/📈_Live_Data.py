@@ -25,7 +25,7 @@ if __name__ == '__main__':
     page_icon="🚆",
     layout="wide"
     )
-    st.sidebar.image("your_logo.png", use_column_width=True)
+    st.logo("logo.png", size='large')
     ### Fetching Data ###
     QUERY = """SELECT *
                FROM train_info_view 
