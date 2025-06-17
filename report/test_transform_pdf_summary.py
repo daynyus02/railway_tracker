@@ -2,16 +2,32 @@
 
 from datetime import timedelta as td
 
+import pandas as pd
+
 from transform_pdf_summary import (get_pct_trains_dep_delayed_five_mins,
                                    get_pct_trains_arr_delayed_five_mins,
                                    get_avg_dep_delay_all_trains, get_pct_trains_cancelled,
                                    get_avg_arr_delay_all_trains,
                                    get_avg_dep_delay_delayed_trains,
                                    get_avg_arr_delay_delayed_trains,
-                                   convert_timedelta_to_str)
+                                   convert_timedelta_to_str,
+                                   convert_train_times_to_date_times)
 
+
+# convert_train_times_to_date_times() tests
+
+def test_convert_train_times_to_date_times_null_cols(past_day_data_null_time_columns):
+    """Tests that null values in a column do not raise an error and are left as na."""
+
+    res = convert_train_times_to_date_times(past_day_data_null_time_columns)
+
+    assert res["scheduled_arr_time"].isna().sum() == 1
+    assert res["actual_arr_time"].isna().sum() == 1
+    assert res["scheduled_dep_time"].isna().sum() == 1
+    assert res["actual_dep_time"].isna().sum() == 1
 
 # convert_timedelta_to_str() tests
+
 
 def test_convert_timedelta_to_str_zero():
     """Tests that correct string returned from zero timedelta."""
@@ -56,6 +72,13 @@ def test_get_pct_trains_dep_delayed_five_mins_returns_correct_pct_one_delay(past
         past_day_data_long_delays) == 50
 
 
+def test_get_pct_trains_dep_delayed_five_mins_returns_correct_pct_one_delay_null_column(past_day_data_null_time_columns):
+    """Tests that correct percentage is returned when one train has null departure times."""
+
+    assert get_pct_trains_dep_delayed_five_mins(
+        past_day_data_null_time_columns) == 50
+
+
 # get_pct_trains_arr_delayed_five_mins() tests
 
 def test_get_pct_trains_arr_delayed_five_mins_returns_zero(past_day_data_no_delays):
@@ -71,7 +94,14 @@ def test_get_pct_trains_arr_delayed_five_mins_returns_correct_pct_one_delay(past
         past_day_data_long_delays) == 50
 
 
+def test_get_pct_trains_arr_delayed_five_mins_returns_correct_pct_one_delay_null_column(past_day_data_null_time_columns):
+    """Tests that correct percentage is returned when one train has null departure times."""
+
+    assert get_pct_trains_arr_delayed_five_mins(
+        past_day_data_null_time_columns) == 0
+
 # get_pct_trains_cancelled() tests
+
 
 def test_get_pct_trains_cancelled_no_cancellations(past_day_data_no_delays):
     """Tests that zero is returned when no trains are cancelled."""
