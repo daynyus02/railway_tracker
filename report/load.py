@@ -2,10 +2,15 @@
 
 from os import environ as ENV
 import logging
+from datetime import datetime as dt
 
 from boto3 import client
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+from pandas import DataFrame
 
+from extract import get_days_data_per_station, get_db_connection
+from transform_summary import get_station_summary
 from report import generate_pdf
 
 logger = logging.getLogger(__name__)
@@ -39,16 +44,32 @@ def report_already_exists(s3_client: client, filename: str) -> bool:
         return True
 
     except ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
+        if e.response['Error']['Code'] == 'NoSuchKey' or e.response['Error']['Code'] == '404':
             logger.info("%s does not already exist in S3")
             return False
-        else:
-            logger.error(
-                "Error accessing S3 bucket to check for existing file.")
-            raise
+        logger.error(
+            "Error accessing S3 bucket to check for existing file.")
+        raise
 
 
-def load_to_s3(s3_client: client, filename) -> None:
+def load_new_report(s3_client: client, station_name: str, data: dict) -> None:
     """Loads a report to S3 if it does not already exist."""
 
-    if not report_already_exists(s3_client, )
+    filename = f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}.pdf"
+
+    if not report_already_exists(s3_client, filename):
+        pdf = generate_pdf(station_name, data)
+        s3_client.put_object(
+            bucket=ENV["S3_BUCKET_NAME"], key=filename, Body=pdf)
+        logger.info("%s file successfully created in S3.", filename)
+
+
+if __name__ == "__main__":
+    load_dotenv()
+
+    with get_db_connection() as conn:
+        extracted_data = DataFrame(get_days_data_per_station("DID", conn))
+        summary_data = get_station_summary(extracted_data)
+
+        s3_client = get_s3_client()
+        load_new_report(s3_client, "DID", summary_data)

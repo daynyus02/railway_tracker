@@ -12,16 +12,16 @@ from reportlab.lib.styles import getSampleStyleSheet
 from pandas import DataFrame
 from dotenv import load_dotenv
 
-from report.extract import get_days_data_per_station, get_db_connection
+from extract import get_days_data_per_station, get_db_connection
 from transform_summary import get_station_summary
 
 
-def generate_pdf(station_name: str, data: dict) -> bytes:
+def generate_pdf(station_crs: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
     report = SimpleDocTemplate(
-        f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
+        f"{station_crs} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
     styles = getSampleStyleSheet()
 
     styles['Title'].textColor = colors.HexColor("#df543b")
@@ -29,7 +29,7 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
 
     pdf_elements = []
     pdf_elements.append(
-        Paragraph(f"OnTrack Summary Report, {dt.today().strftime("%d/%m/%Y")}, {station_name}", styles['Title']))
+        Paragraph(f"OnTrack {station_crs} Summary Report, {dt.today().strftime("%d/%m/%Y")}", styles['Title']))
     for key, value in data.items():
         pdf_elements.append(Paragraph(f"{key}: {value}", styles['BodyText']))
 
@@ -39,11 +39,11 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     return pdf_buffer.read()
 
 
-def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
+def get_email_message_as_string(station_crs: str, pdf_bytes: bytes) -> str:
     """Gets the raw message string for summary email using PDF bytes."""
 
     msg = MIMEMultipart()
-    msg['Subject'] = f"{station_name} Summary Report"
+    msg['Subject'] = f"{station_crs} Summary Report"
     msg['From'] = "trainee.stefan.cole@sigmalabs.co.uk"
     msg['To'] = "trainee.stefan.cole@sigmalabs.co.uk"
 
@@ -52,7 +52,7 @@ def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
+                          filename=f"{station_crs} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
