@@ -1,0 +1,81 @@
+"""Data manipulation functions for the live dashboard."""
+import pandas as pd
+import numpy as np
+
+def fetch_data(query, conn) -> pd.DataFrame:
+    """Returns a dataframe given a query and connection."""
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
+### Transforming data ###
+def convert_times_to_datetime(df) -> None:
+    for col in ['actual_arr_time','scheduled_arr_time', 'actual_dep_time','scheduled_dep_time']:
+        df[col] = pd.to_datetime(df[col], format='%H:%M:%S')
+
+def add_status_column(df) -> None:
+    conditions = [(df['cancelled'] == True),
+                (df['scheduled_dep_time'] < df['actual_dep_time'])]
+    choices = ['Cancelled', 'Delayed']
+    df['Status'] = np.select(conditions, choices, default="On Time")
+
+def filter_data(df: pd.DataFrame, selected_arrival: str, selected_destination:str, selected_operator: str) -> pd.DataFrame:
+    filtered_data = df.copy()
+
+    if selected_arrival != "All":
+        filtered_data = filtered_data[filtered_data["station_name"] == selected_arrival]
+
+    if selected_destination != "All":
+        filtered_data = filtered_data[filtered_data["destination_name"] == selected_destination]
+
+    if selected_operator != "All":
+        filtered_data = filtered_data[filtered_data["operator_name"] == selected_operator]
+    return filtered_data
+
+### Displaying delay info ###
+def get_delays(df: pd.DataFrame) -> pd.DataFrame:
+    delays = df[["Status",
+                 "service_uid",
+                 "scheduled_dep_time",
+                 "actual_dep_time", 
+                 "station_name",
+                 "origin_name",
+                 "destination_name", 
+                 "operator_name"
+                ]].copy()
+    delays = delays[delays["Status"] == "Delayed"]
+    return delays
+
+def add_delay_time(df: pd.DataFrame) -> None:
+    df["delay_time"] = df["actual_dep_time"] - df["scheduled_dep_time"]
+    df = df[df["delay_time"] > pd.Timedelta(0)]
+    df = df.dropna(subset=["delay_time"])
+    df["delay_time"] = df["delay_time"].dt.total_seconds() // 60
+    return df
+
+def get_cancelled_data(df: pd.DataFrame) -> pd.DataFrame:
+    cancelled = df[["service_uid","operator_name", "Status"]].copy()
+    cancelled = cancelled.groupby(["operator_name","Status"])["service_uid"].nunique().reset_index(name="Count")
+    return cancelled[cancelled["Status"]=="Cancelled"].rename(columns={"operator_name": "Operator"})
+
+def get_interruption_data(df:pd.DataFrame) -> pd.DataFrame:
+    interruptions = df[["service_uid","operator_name", "Status"]].copy()
+    interruptions = interruptions.groupby(["operator_name", "Status"])["service_uid"].nunique().reset_index()
+    interruptions["percentage_of_trains"] = (interruptions["service_uid"]*100 / interruptions.groupby('operator_name')['service_uid'].transform('sum')).round(1)
+    return interruptions
+
+def get_route_data(df:pd.DataFrame) -> pd.DataFrame:
+    routes = df.groupby(["origin_name", "destination_name"]).agg(
+        delayed_count=("delay_time", "size"),
+        avg_delay_time=("delay_time", "mean")
+    ).reset_index()
+
+    routes["avg_delay_time"] = routes["avg_delay_time"].round(1)
+
+    routes.rename(columns={
+        'origin_name': 'Origin',
+        'destination_name': 'Destination',
+        'delayed_count': 'Number of Delays',
+        'avg_delay_time': 'Average Delay (min)'
+    }, inplace=True)
+    return routes
