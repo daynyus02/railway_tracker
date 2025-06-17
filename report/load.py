@@ -17,10 +17,13 @@ logging.basicConfig(
 
 def get_s3_client() -> client:
     """Returns an S3 client using boto3."""
-
-    s3_client = client(
-        "s3", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+    try:
+        s3_client = client(
+            "s3", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+        logging.info("Successfully created S3 client.")
+    except ClientError:
+        logging.error("Failed to create S3 client.")
 
     return s3_client
 
