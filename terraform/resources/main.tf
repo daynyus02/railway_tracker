@@ -85,6 +85,63 @@ resource "aws_vpc_security_group_ingress_rule" "allow_http" {
   description       = "Allow HTTP access from anywhere."
 }
 
+# Permissions
+
+data "aws_iam_policy" "cloudwatch_full_access" {
+    arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
+data "aws_iam_policy" "ecs_full_access" {
+    arn = "arn:aws:iam::aws:policy/AmazonECS_FullAccess"
+}
+
+data "aws_iam_policy" "ecr_full_access" {
+    arn = "arn:aws:iam::aws:policy/AmazonElasticContainerRegistryPublicFullAccess"
+}
+
+data "aws_iam_policy" "ecs_service" {
+    arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role" "ecs_task_exec_role" {
+  name = "c17-trains-ecs-task-exec-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_cloudwatch" {
+    role = aws_iam_role.ecs_task_exec_role.name
+    policy_arn = data.aws_iam_policy.cloudwatch_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs" {
+    role = aws_iam_role.ecs_task_exec_role.name
+    policy_arn = data.aws_iam_policy.ecs_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecr" {
+    role = aws_iam_role.ecs_task_exec_role.name
+    policy_arn = data.aws_iam_policy.ecr_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs_role" {
+    role = aws_iam_role.ecs_task_exec_role.name
+    policy_arn = data.aws_iam_policy.ecs_service.arn
+}
+
+# Task Definition
+
 # LAMBDA
 
 # Permissions for RTT and incidents pipeline lambda
