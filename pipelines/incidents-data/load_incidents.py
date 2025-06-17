@@ -4,7 +4,7 @@ from os import environ as ENV
 import logging
 
 from dotenv import load_dotenv
-import pandas as pd
+from pandas import DataFrame
 from psycopg2 import connect
 from psycopg2.extras import execute_values
 from psycopg2.extensions import connection as Connection
@@ -89,7 +89,7 @@ def get_existing_incident_keys(conn: Connection) -> dict[str, str]:
         return {row[0]: row[1] for row in cur.fetchall()}
 
 
-def insert_incidents(conn: Connection, data: pd.DataFrame):
+def insert_incidents(conn: Connection, data: DataFrame) -> None:
     """Insert incident data if it's not already in the database."""
     existing_versions = get_existing_incident_keys(conn)
     operator_id_map = get_operator_id_map(conn)
@@ -226,7 +226,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
     logger.info("Skipped %s duplicated incidents.", skipped_count)
 
 
-def load(data: pd.DataFrame):
+def load(data: DataFrame) -> None:
     """Main load process."""
     with get_connection() as conn:
         insert_incidents(conn, data)
