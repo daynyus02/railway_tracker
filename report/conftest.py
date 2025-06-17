@@ -187,3 +187,28 @@ def past_day_data_early():
             'reason': None
         }
     ])
+
+
+@fixture
+def past_day_data_null_time_columns():
+    """Sample train database data with null time columns."""
+    return DataFrame([
+        {
+            'service_date': dt.date(2025, 6, 14),
+            'scheduled_arr_time': None,
+            'actual_arr_time': None,
+            'scheduled_dep_time': dt.time(21, 21),
+            'actual_dep_time': dt.time(21, 26),
+            'cancellation_id': None,
+            'reason': None
+        },
+        {
+            'service_date': dt.date(2025, 6, 14),
+            'scheduled_arr_time': dt.time(22, 20),
+            'actual_arr_time': dt.time(22, 23),
+            'scheduled_dep_time': None,
+            'actual_dep_time': None,
+            'cancellation_id': None,
+            'reason': None
+        }
+    ])

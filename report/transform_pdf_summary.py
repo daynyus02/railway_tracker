@@ -3,6 +3,7 @@
 import datetime as dt
 
 from pandas import DataFrame
+import pandas as pd
 
 
 def convert_train_times_to_date_times(data: DataFrame) -> DataFrame:
@@ -15,7 +16,8 @@ def convert_train_times_to_date_times(data: DataFrame) -> DataFrame:
 
     for column in time_columns:
         data[column] = data[column].apply(
-            lambda t: dt.datetime.combine(train_date, t))
+            lambda t: (dt.datetime.combine(train_date, t)
+                       if pd.notna(t) else pd.NA))
 
     return data
 
