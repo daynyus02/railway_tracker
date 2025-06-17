@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock, patch
 from psycopg2.extras import RealDictRow
 
-from extract_report_data import (get_db_connection, get_days_data_per_station,
-                                 get_station_id_from_crs)
+from report.extract import (get_db_connection, get_days_data_per_station,
+                            get_station_id_from_crs)
 
 
 def test_get_db_connection_called_once():

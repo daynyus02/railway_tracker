@@ -6,6 +6,8 @@ import logging
 from boto3 import client
 from botocore.exceptions import ClientError
 
+from report import generate_pdf
+
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
@@ -44,3 +46,9 @@ def report_already_exists(s3_client: client, filename: str) -> bool:
             logger.error(
                 "Error accessing S3 bucket to check for existing file.")
             raise
+
+
+def load_to_s3(s3_client: client, filename) -> None:
+    """Loads a report to S3 if it does not already exist."""
+
+    if not report_already_exists(s3_client, )

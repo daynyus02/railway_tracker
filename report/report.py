@@ -12,7 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from pandas import DataFrame
 from dotenv import load_dotenv
 
-from extract_report_data import get_days_data_per_station, get_db_connection
+from report.extract import get_days_data_per_station, get_db_connection
 from transform_summary import get_station_summary
 
 
@@ -20,7 +20,8 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
-    report = SimpleDocTemplate("myfile.pdf")
+    report = SimpleDocTemplate(
+        f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
     styles = getSampleStyleSheet()
 
     styles['Title'].textColor = colors.HexColor("#df543b")
@@ -51,7 +52,7 @@ def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}")
+                          filename=f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
