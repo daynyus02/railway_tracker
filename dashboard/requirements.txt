@@ -1,3 +1,5 @@
+pytest
+pylint
 streamlit
 pandas
 psycopg2
