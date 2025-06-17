@@ -21,7 +21,7 @@ def generate_pdf(station_crs: str, data: dict) -> bytes:
 
     pdf_buffer = BytesIO()
     report = SimpleDocTemplate(
-        f"{station_crs} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
+        f"{station_crs} summary report {dt.today().strftime("%d-%m-%Y")}.pdf")
     styles = getSampleStyleSheet()
 
     styles['Title'].textColor = colors.HexColor("#df543b")
@@ -29,7 +29,7 @@ def generate_pdf(station_crs: str, data: dict) -> bytes:
 
     pdf_elements = []
     pdf_elements.append(
-        Paragraph(f"OnTrack {station_crs} Summary Report, {dt.today().strftime("%d/%m/%Y")}", styles['Title']))
+        Paragraph(f"OnTrack {station_crs} Summary Report, {dt.today().strftime("%d-%m-%Y")}", styles['Title']))
     for key, value in data.items():
         pdf_elements.append(Paragraph(f"{key}: {value}", styles['BodyText']))
 
@@ -52,7 +52,7 @@ def get_email_message_as_string(station_crs: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_crs} summary report {dt.today().strftime("%d/%m/%Y")}.pdf")
+                          filename=f"{station_crs} summary report {dt.today().strftime("%d-%m-%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
@@ -64,4 +64,4 @@ if __name__ == "__main__":
     with get_db_connection() as db_conn:
         station_data = DataFrame(get_days_data_per_station("DID", db_conn))
         summary = get_station_summary(station_data)
-        generate_pdf("Didcot Parkway", summary)
+        generate_pdf("DID", summary)
