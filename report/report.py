@@ -41,7 +41,7 @@ def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
     """Gets the raw message string for summary email using PDF bytes."""
 
     msg = MIMEMultipart()
-    msg['Subject'] = "Train Summary Report"
+    msg['Subject'] = f"{station_name} Summary Report"
     msg['From'] = "trainee.stefan.cole@sigmalabs.co.uk"
     msg['To'] = "trainee.stefan.cole@sigmalabs.co.uk"
 
