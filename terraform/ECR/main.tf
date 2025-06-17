@@ -15,3 +15,9 @@ resource "aws_ecr_repository" "rtt_pipeline_lambda_image_repo" {
 resource "aws_ecr_repository" "incidents_pipeline_lambda_image_repo" {
   name = "c17-trains-ecr-incidents-pipeline"
 }
+
+# ECR Repository for dashboard image
+
+resource "aws_ecr_repository" "dashboard_td_image_repo" {
+  name = "c17-trains-ecr-dashboard"
+}
