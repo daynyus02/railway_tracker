@@ -217,7 +217,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
             # execute_values(cur, assignment_query, assignment_values)
 
     conn.commit()
-    logger.info("Inserted %s new incident records.", inserted_count)
+    logger.info("Inserted %s new incidents.", inserted_count)
     logger.info("Updated %s incidents.", updated_count)
     logger.info("Skipped %s duplicated incidents.", skipped_count)
 

@@ -3,6 +3,7 @@
 
 import pytest
 import pandas as pd
+from unittest.mock import MagicMock
 
 
 @pytest.fixture
@@ -139,3 +140,8 @@ def sample_extracted_data():
             "operators": "Great Western Railway"
         }
     ])
+
+
+@pytest.fixture
+def fake_conn():
+    return MagicMock()
