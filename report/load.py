@@ -28,5 +28,19 @@ def get_s3_client() -> client:
     return s3_client
 
 
-def report_already_exists(bucket_name: str, filename: str) -> bool:
+def report_already_exists(s3_client: client, filename: str) -> bool:
     """Returns true if a file with the given filename already exists in S3 bucket."""
+
+    try:
+        s3_client.head_object(Bucket=ENV["S3_BUCKET_NAME"], Key=filename)
+        logging.info("Report with filename %s exists.", filename)
+        return True
+
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            logger.info("%s does not already exist in S3")
+            return False
+        else:
+            logger.error(
+                "Error accessing S3 bucket to check for existing file.")
+            raise
