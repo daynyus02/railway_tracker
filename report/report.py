@@ -24,6 +24,7 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     styles = getSampleStyleSheet()
 
     styles['Title'].textColor = colors.HexColor("#df543b")
+    styles['BodyText'].textColor = colors.HexColor("#3d3d3d")
 
     pdf_elements = []
     pdf_elements.append(
