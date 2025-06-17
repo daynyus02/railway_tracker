@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
     db_conn = get_db_connection()
 
-    data = DataFrame(get_days_data_per_station("DID", db_conn))
-    summary_data = get_station_summary(data)
-    generate_pdf(summary_data)
+    data = DataFrame(get_days_data_per_station("DID", db_conn)[:5])
+    summary_data = get_station_summary(data[:5])
+
+    db_conn.close()

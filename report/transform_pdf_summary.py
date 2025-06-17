@@ -16,8 +16,9 @@ def convert_train_times_to_date_times(data: DataFrame) -> DataFrame:
 
     for column in time_columns:
         data[column] = data[column].apply(
-            lambda t: (dt.datetime.combine(train_date, t)
-                       if pd.notna(t) else pd.NA))
+            lambda t: (dt.datetime.combine(train_date, t.time()if isinstance(
+                t, dt.datetime) else t) if pd.notna(t) else pd.NaT)
+        )
 
     return data
 
@@ -130,7 +131,7 @@ def get_avg_arr_delay_delayed_trains(data: DataFrame) -> str:
 def get_station_summary(data: DataFrame) -> dict:
     """Returns a dictionary for summary statistics for a train station."""
 
-    {
+    return {
         "% trains departing delayed by 5+ minutes": get_pct_trains_dep_delayed_five_mins(data),
         "% trains arriving delayed by 5+ minutes": get_pct_trains_arr_delayed_five_mins(data),
         "% trains cancelled": get_pct_trains_cancelled(data),
