@@ -41,4 +41,5 @@ def lambda_handler(event=None, context=None) -> dict:
 
 
 if __name__ == "__main__":
+    load_dotenv()
     run(ENV["STATIONS"].split(","))
