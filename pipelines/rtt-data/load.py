@@ -127,7 +127,7 @@ def find_new_train_services(api_data_train_service,
 
 def map_api_train_stop_data(api_data_train_stop: DataFrame,
                             database_data_train_services: DataFrame,
-                            database_data_stations):
+                            database_data_stations: DataFrame):
     """Mapping train_service_id and station_id to API train stop data."""
     service_uid_to_id = dict(zip(
         database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
