@@ -10,6 +10,8 @@ This pipeline extracts train service data from the National Rail Incidents API a
 - `test_extract_incidents.py` - Tests for the extract script.
 - `transform_incidents.py` - Transforms and filters extracted data.
 - `test_transform_incidents.py` - Tests for the transform script.
+- `load_incidents.py` - Loads new incidents into the database, updates updated incidents in the database, and skips incidents already present.
+- `test_load_incidents.py` - Tests for the load script.
 - `conftest.py` - Contains fixtures for the tests.
 
 
@@ -22,9 +24,14 @@ This pipeline extracts train service data from the National Rail Incidents API a
 3. Ensure that environment variables are stored locally in a `.env` file.
 
 ### Example `.env`
-```bash
-INCIDENTS_URL = XXX
+```
+INCIDENTS_URL = XXX - URL for incidents API.
+DB_HOST = XXX
+DB_NAME = XXX
+DB_USER = XXX
+DB_PASSWORD = XXX
+DB_PORT = XXX
 ```
 
 ## Usage
-Run `python3 extract_incidents.py` and `python3 transform_incidents.py` in the command line.
+Run `python3 extract_incidents.py`, `python3 transform_incidents.py` and `python3 load_incidents.py` in the command line.
