@@ -9,7 +9,6 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - ACCESS_KEY - AWS IAM access key.
 - SECRET_KEY - The corresponding secret key for the above IAM user.
 - ACCOUNT_ID - AWS Account ID.
-- EMAIL - An email to subscribe to SNS topic.
 - VPC_ID - The ID of the VPC to use.
 - SUBNET_ID_X - The ID's of subnets to use.
 - DB_HOST - RDS instance endpoint.
@@ -23,14 +22,6 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - GW_URL - URL for the incidents API (Great Western Railway services only).
 
 ## Resources provisioned
-
-#### SNS Topic:
-- `c17-trains-sns-topic-rtt-pipeline-alerts`
-- For RTT pipeline alerts.
-
-#### SNS Topic:
-- `c17-trains-sns-topic-incidents-pipeline-alerts`
-- For incidents pipeline alerts.
 
 #### Lambda:
 - `c17-trains-lambda-rtt-pipeline`
