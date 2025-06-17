@@ -9,16 +9,8 @@ from extract import fetch_train_data
 from transform import transform_train_data
 from load import get_connection, load_data_into_database
 
-logging.basicConfig(
-    level="DEBUG",
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S"
-)
-
-logger = logging.getLogger(__name__)
-
-load_dotenv()
-STATIONS = ENV["STATIONS"].split(",")
+logger = logging.getLogger()
+logger.setLevel("DEBUG")
 
 
 def run(stations: list[str]) -> None:
@@ -31,15 +23,17 @@ def run(stations: list[str]) -> None:
 
 def lambda_handler(event=None, context=None) -> dict:
     """AWS Lambda handler that runs the ETL pipeline."""
+    load_dotenv()
+    stations = ENV["STATIONS"].split(",")
     try:
         logger.info("Lambda triggered, running ETL.")
-        run(STATIONS)
+        run(stations)
         return {
             "statusCode": 200,
             "body": "ETL completed."
         }
     except Exception as e:
-        logger.exception("ETL failed.")
+        logger.info("ETL failed.")
         return {
             "statusCode": 500,
             "body": f"ETL failed: {str(e)}"
@@ -47,4 +41,4 @@ def lambda_handler(event=None, context=None) -> dict:
 
 
 if __name__ == "__main__":
-    run(STATIONS)
+    run(ENV["STATIONS"].split(","))
