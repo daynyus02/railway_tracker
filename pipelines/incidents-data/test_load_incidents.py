@@ -65,7 +65,7 @@ def test_get_route_id_missing_operator_id(fake_conn):
                      "Bristol Temple Meads", "Great Western Railway", station_map, operator_map)
 
 
-def test_route_caching(sample_extracted_data, fake_conn):
+def test_route_caching(sample_extracted_data_pad_bri, fake_conn):
     """Test that get_route_id is only called if the route isn't cached."""
     with patch("load_incidents.get_route_id", return_value=1) as mock_get_route_id, \
             patch("load_incidents.get_existing_incident_keys", return_value={}), \
@@ -76,7 +76,10 @@ def test_route_caching(sample_extracted_data, fake_conn):
                 "Bristol Temple Meads": 2
             }):
 
-        insert_incidents(fake_conn, sample_extracted_data)
+        fake_cursor = fake_conn.cursor.return_value.__enter__.return_value
+        fake_cursor.fetchone.return_value = [None]
+
+        insert_incidents(fake_conn, sample_extracted_data_pad_bri)
 
         mock_get_route_id.assert_called_once_with(
             fake_conn,
@@ -86,4 +89,22 @@ def test_route_caching(sample_extracted_data, fake_conn):
             {"London Paddington": 1, "Bristol Temple Meads": 2},
             {"Great Western Railway": 1}
         )
+
+
+def test_insert_incident_commits_once(fake_conn, sample_extracted_data_pad_bri):
+    """Test that commit is called in insert incidents."""
+    with patch("load_incidents.get_route_id", return_value=1) as mock_get_route_id, \
+            patch("load_incidents.get_existing_incident_keys", return_value={}), \
+            patch("load_incidents.get_operator_id_map",
+                  return_value={"Great Western Railway": 1}), \
+            patch("load_incidents.get_station_id_map", return_value={
+                "London Paddington": 1,
+                "Bristol Temple Meads": 2
+            }):
+
+        fake_cursor = fake_conn.cursor.return_value.__enter__.return_value
+        fake_cursor.fetchone.return_value = [None]
+
+        insert_incidents(fake_conn, sample_extracted_data_pad_bri)
+
         fake_conn.commit.assert_called_once()
