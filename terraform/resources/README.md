@@ -20,6 +20,7 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - API_PASSWORD - RTT API password.
 - STATIONS - Comma separated list of stations to be loaded.
 - INCIDENTS_URL - URL for the incidents API.
+- TOPIC_PREFIX - Prefix for alerts topics.
 
 ## Resources provisioned
 

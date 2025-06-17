@@ -25,8 +25,8 @@ data "aws_subnet" "public_subnet_3" {
 # S3 BUCKET
 
 resource "aws_s3_bucket" "s3_bucket" {
-    bucket = "c17-trains-bucket-reports"
-    force_destroy = true
+  bucket        = "c17-trains-bucket-reports"
+  force_destroy = true
 }
 
 # ECR
@@ -208,6 +208,22 @@ resource "aws_ecs_task_definition" "dashboard_td" {
         {
           name  = "DB_PASSWORD"
           value = var.DB_PASSWORD
+        },
+        {
+          name  = "TOPIC_PREFIX"
+          value = var.TOPIC_PREFIX
+        },
+        {
+          name  = "ACCESS_KEY"
+          value = var.ACCESS_KEY
+        },
+        {
+          name  = "SECRET_ACCESS_KEY"
+          value = var.SECRET_KEY
+        },
+        {
+          name  = "REGION"
+          value = var.REGION
         }
       ]
     }
