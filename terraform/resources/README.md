@@ -19,9 +19,27 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - API_USERNAME - RTT API username.
 - API_PASSWORD - RTT API password.
 - STATIONS - Comma separated list of stations to be loaded.
-- GW_URL - URL for the incidents API (Great Western Railway services only).
+- INCIDENTS_URL - URL for the incidents API.
 
 ## Resources provisioned
+
+#### S3 Bucket:
+- `c17-trains-bucket-reports`
+- Stores daily summary reports for archival.
+
+#### Security Group:
+- `c17-trains-ecs-sg`
+- A security group for the ECS Service.
+- Allows incoming HTTP traffic on port 8501 from any IP.
+- Allows outgoing traffic on port 5432. 
+
+#### ECS Task Definition:
+- `c17-trains-td-dashboard`
+- Runs a containerized Streamlit dashboard.
+
+#### ECS Fargate Service:
+- `c17-trains-ecs-service-dashboard`
+- Runs the dashboard as a service.
 
 #### Lambda:
 - `c17-trains-lambda-rtt-pipeline`
