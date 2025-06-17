@@ -55,7 +55,7 @@ def report_already_exists(s3_client: client, filename: str) -> bool:
 def load_new_report(s3_client: client, station_name: str, data: dict) -> None:
     """Loads a report to S3 if it does not already exist."""
 
-    filename = f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}.pdf"
+    filename = f"{station_name} summary report {dt.today().strftime("%d-%m-%Y")}.pdf"
 
     if not report_already_exists(s3_client, filename):
         pdf = generate_pdf(station_name, data)
