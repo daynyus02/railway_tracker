@@ -1,21 +1,19 @@
 """Script for creating PDF summary report."""
 
-import json
-
 from datetime import datetime as dt
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from io import BytesIO
 
-import boto3
 from reportlab.platypus import Paragraph, SimpleDocTemplate
+from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from pandas import DataFrame
 from dotenv import load_dotenv
 
 from extract_report_data import get_days_data_per_station, get_db_connection
-from transform_pdf_summary import get_station_summary
+from transform_summary import get_station_summary
 
 
 def generate_pdf(station_name: str, data: dict) -> bytes:
@@ -24,6 +22,8 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     pdf_buffer = BytesIO()
     report = SimpleDocTemplate("myfile.pdf")
     styles = getSampleStyleSheet()
+
+    styles['Title'].textColor = colors.HexColor("#df543b")
 
     pdf_elements = []
     pdf_elements.append(
@@ -59,10 +59,7 @@ def get_email_message_as_string(pdf_bytes: bytes) -> str:
 if __name__ == "__main__":
     load_dotenv()
 
-    db_conn = get_db_connection()
-
-    data = DataFrame(get_days_data_per_station("DID", db_conn)[:5])
-    summary_data = get_station_summary(data[:5])
-    generate_pdf("Didcot Parkway", summary_data)
-
-    db_conn.close()
+    with get_db_connection() as db_conn:
+        station_data = DataFrame(get_days_data_per_station("DID", db_conn))
+        summary = get_station_summary(station_data)
+        generate_pdf("Didcot Parkway", summary)
