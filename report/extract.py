@@ -56,6 +56,26 @@ def get_station_id_from_crs(station_crs: str, conn: Connection) -> int:
     return result
 
 
+def get_station_name_from_crs(station_crs: str, conn: Connection) -> int:
+    """Gets corresponding station name from database for a given station CRS code."""
+
+    with conn.cursor(cursor_factory=RealDictCursor) as curs:
+
+        curs.execute("SELECT * FROM station WHERE station_crs = %s",
+                     (station_crs,))
+        result = curs.fetchone()
+
+        if result:
+            logging.info(
+                "Successfully retrieved station name for %s", station_crs)
+            result = dict(result)["station_name"]
+        else:
+            logging.warning("No station name retrieved for %s", station_crs)
+        curs.close()
+
+    return result
+
+
 def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
     """Get data from the last 24 hours for a given station."""
 

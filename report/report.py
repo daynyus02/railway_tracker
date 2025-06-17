@@ -12,11 +12,11 @@ from reportlab.lib.styles import getSampleStyleSheet
 from pandas import DataFrame
 from dotenv import load_dotenv
 
-from extract import get_days_data_per_station, get_db_connection
+from extract import get_days_data_per_station, get_db_connection, get_station_name_from_crs
 from transform_summary import get_station_summary
 
 
-def generate_pdf(station_crs: str, data: dict) -> bytes:
+def generate_pdf(station_crs: str, station_name: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
@@ -28,7 +28,7 @@ def generate_pdf(station_crs: str, data: dict) -> bytes:
 
     pdf_elements = []
     pdf_elements.append(
-        Paragraph(f"OnTrack {station_crs} Summary Report, {dt.today().strftime("%d-%m-%Y")}", styles['Title']))
+        Paragraph(f"OnTrack {station_name} Summary Report, {dt.today().strftime("%d-%m-%Y")}", styles['Title']))
     for key, value in data.items():
         pdf_elements.append(Paragraph(f"{key}: {value}", styles['BodyText']))
 
@@ -51,7 +51,7 @@ def get_email_message_as_string(station_crs: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_crs}_summary_report_{dt.today().strftime("%d-%m-%Y")}.pdf")
+                          filename=f"{station_crs}_station_summary_report_{dt.today().strftime("%d-%m-%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
