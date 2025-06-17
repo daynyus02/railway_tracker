@@ -32,34 +32,18 @@ def get_connection() -> Connection:
     )
 
 
-def get_operator_id(conn: Connection, operator_name: str) -> int:
-    """Get the operator id for an operator."""
+def get_operator_id_map(conn: Connection) -> int:
+    """Return a dict mapping operator names to operator IDs."""
     with conn.cursor() as cur:
-        logger.debug("Getting operator ID for %s.", operator_name)
-        cur.execute(
-            "SELECT operator_id FROM operator WHERE operator_name = %s;", (operator_name,))
-
-        operator_id = cur.fetchone()
-        if not operator_id:
-            logger.error("Missing operator ID for %s.", operator_name)
-            raise ValueError(f"Could not find operator ID for {operator_name}")
-
-    return operator_id[0]
+        cur.execute("SELECT operator_name, operator_id FROM operator")
+        return {row[0]: row[1] for row in cur.fetchall()}
 
 
-def get_station_id(conn: Connection, station_name: str) -> int:
-    """Get the station id for a station."""
+def get_station_id_map(conn: Connection) -> int:
+    """Return a dict mapping station names to station IDs."""
     with conn.cursor() as cur:
-        logger.debug("Getting station ID for %s.", station_name)
-        cur.execute(
-            "SELECT station_id FROM station WHERE station_name = %s;", (station_name,))
-
-        station_id = cur.fetchone()
-        if not station_id:
-            logger.error("Missing station ID for %s.", station_name)
-            raise ValueError(f"Could not find station ID for {station_name}.")
-
-    return station_id[0]
+        cur.execute("SELECT station_name, station_id FROM station")
+        return {row[0]: row[1] for row in cur.fetchall()}
 
 
 def get_route_id(conn: Connection, origin: str, destination: str, operator: str) -> int:
@@ -92,7 +76,7 @@ def get_route_id(conn: Connection, origin: str, destination: str, operator: str)
 
 
 def get_existing_incident_keys(conn: Connection) -> dict[str, str]:
-    """Return a dict of incident_number -> version_number from the DB."""
+    """Return a dict of incident_number: version_number from the DB."""
     with conn.cursor() as cur:
         cur.execute("SELECT incident_number, version_number FROM incident")
         return {row[0]: row[1] for row in cur.fetchall()}
@@ -158,7 +142,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                           row["info_link"],
                           row["summary"])
 
-                cur.execute(insert_query, values)
+                # cur.execute(insert_query, values)
                 inserted_count += 1
                 logger.info("Inserted new incident %s.", incident_number)
 
@@ -189,7 +173,7 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                     incident_number
                 )
 
-                cur.execute(update_query, values)
+                # cur.execute(update_query, values)
                 updated_count += 1
                 logger.info("Updated incident %s to version %s.",
                             incident_number, version_number)
@@ -199,16 +183,16 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
                 logger.info("Skipping unchanged incident %s.", incident_number)
                 continue
 
-            incident_id = cur.fetchone()[0]
-            assignment_values = [(incident_id, op_id)
-                                 for op_id in operator_ids]
-            assignment_query = """
-            INSERT INTO incident_operator_assignment
-                (incident_id, operator_id)
-            VALUES %s
-            ON CONFLICT DO NOTHING;
-            """
-            execute_values(cur, assignment_query, assignment_values)
+            # incident_id = cur.fetchone()[0]
+            # assignment_values = [(incident_id, op_id)
+            #                      for op_id in operator_ids]
+            # assignment_query = """
+            # INSERT INTO incident_operator_assignment
+            #     (incident_id, operator_id)
+            # VALUES %s
+            # ON CONFLICT DO NOTHING;
+            # """
+            # execute_values(cur, assignment_query, assignment_values)
 
     conn.commit()
     logger.info("Inserted %s new incident records.", inserted_count)
@@ -218,9 +202,8 @@ def insert_incidents(conn: Connection, data: pd.DataFrame):
 
 def load(data: pd.DataFrame):
     """Main load process."""
-    conn = get_connection()
-    insert_incidents(conn, data)
-    conn.close()
+    with get_connection() as conn:
+        insert_incidents(conn, data)
 
 
 if __name__ == "__main__":
