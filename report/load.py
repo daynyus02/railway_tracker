@@ -1,9 +1,18 @@
 """Script for loading reports into S3 bucket."""
 
 from os import environ as ENV
+import logging
 
 from boto3 import client
 from botocore.exceptions import ClientError
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level="WARNING",
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S"
+)
 
 
 def get_s3_client() -> client:
