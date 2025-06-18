@@ -38,11 +38,11 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     return pdf_buffer.read()
 
 
-def get_email_message_as_string(station_crs: str, pdf_bytes: bytes) -> str:
+def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
     """Gets the raw message string for summary email using PDF bytes."""
 
     msg = MIMEMultipart()
-    msg['Subject'] = f"{station_crs} Summary Report"
+    msg['Subject'] = f"{station_name} Summary Report"
     msg['From'] = "trainee.stefan.cole@sigmalabs.co.uk"
     msg['To'] = "trainee.stefan.cole@sigmalabs.co.uk"
 
@@ -51,7 +51,7 @@ def get_email_message_as_string(station_crs: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_crs}_station_summary_report_{dt.today().strftime("%d-%m-%Y")}.pdf")
+                          filename=f"{station_name.lower().replace(" ", "_")}_station_summary_report_{dt.today().strftime("%d-%m-%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
@@ -63,4 +63,5 @@ if __name__ == "__main__":
     with get_db_connection() as db_conn:
         station_data = DataFrame(get_days_data_per_station("DID", db_conn))
         summary = get_station_summary(station_data)
-        generate_pdf("DID", summary)
+        station_name = get_station_name_from_crs("DID", db_conn)
+        generate_pdf(station_name, summary)
