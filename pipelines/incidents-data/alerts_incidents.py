@@ -35,8 +35,9 @@ def get_sns_topic_arn(sns_client, origin_crs: str, destination_crs: str) -> str:
     return response["TopicArn"]
 
 
-def publish_to_topic_new(origin_crs: str, destination_crs: str, summary: str, info_link: str,
-                         start_time: Timestamp, end_time: Timestamp, is_planned: bool) -> None:
+def publish_new_incident_to_topic(origin_crs: str, destination_crs: str, summary: str,
+                                  info_link: str, start_time: Timestamp, end_time: Timestamp,
+                                  is_planned: bool) -> None:
     """Publish a new incident alert to a topic."""
     sns = get_sns_client()
     topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
@@ -65,8 +66,9 @@ def publish_to_topic_new(origin_crs: str, destination_crs: str, summary: str, in
                      e.response['Error']['Message'])
 
 
-def publish_to_topic_update(origin_crs: str, destination_crs: str, summary: str, info_link: str,
-                            start_time: Timestamp, end_time: Timestamp, is_planned: bool) -> None:
+def publish_update_incident_to_topic(origin_crs: str, destination_crs: str, summary: str,
+                                     info_link: str, start_time: Timestamp, end_time: Timestamp,
+                                     is_planned: bool) -> None:
     """Publish an updated incident alert to a topic."""
     sns = get_sns_client()
     topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
