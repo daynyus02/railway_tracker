@@ -399,7 +399,7 @@ resource "aws_scheduler_schedule" "rtt_pipeline_lambda_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression = "cron(*/5 * * * ? *)"
+  schedule_expression = "cron(* * * * ? *)"
 
   target {
     arn      = aws_lambda_function.rtt_pipeline_lambda.arn
