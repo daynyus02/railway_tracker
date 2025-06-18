@@ -20,7 +20,7 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
-    report = SimpleDocTemplate("myfile.pdf")
+    report = SimpleDocTemplate(pdf_buffer)
     styles = getSampleStyleSheet()
 
     styles['Title'].textColor = colors.HexColor("#df543b")

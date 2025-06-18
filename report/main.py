@@ -7,11 +7,12 @@ from dotenv import load_dotenv
 
 import boto3
 from pandas import DataFrame
+from botocore.exceptions import ClientError
 
 from extract_report_data import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
 from report import generate_pdf, get_email_message_as_string
-from load import load_new_report, get_s3_client
+# from load import load_new_report, get_s3_client
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
@@ -48,38 +49,41 @@ def lambda_handler(event, context) -> dict:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
 
-    s3_client = boto3.client(
-        "s3", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
     sns_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                               aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
-    ses_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
+    ses_client = boto3.client("ses", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                               aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
 
     with get_db_connection() as conn:
         stations = get_station_name_crs_tuples(conn)
 
         for station in stations:
-            data = DataFrame(get_days_data_per_station(station[1], conn))
-            transformed_data = get_station_summary(data)
+            data = get_days_data_per_station(station[1], conn)
+            if data:
+                transformed_data = get_station_summary(DataFrame(data))
 
-            report = generate_pdf(station[0], transformed_data)
+                report = generate_pdf(station[0], transformed_data)
+                msg = get_email_message_as_string(station[0], report)
 
-            topic_arn = get_sns_topic_arn_by_station(sns_client, station[1])
-            emails = get_subscriber_emails_from_topic(topic_arn)
-            report = generate_pdf()
+                topic_arn = get_sns_topic_arn_by_station(
+                    sns_client, station[1])
+                emails = get_subscriber_emails_from_topic(
+                    sns_client, topic_arn)
 
-            msg = get_email_message_as_string(station[0], report)
-            for email in emails:
-                ses_client.send_raw_email(
-                    Source="trainee.stefan.cole@sigmalabs.co.uk",
-                    Destinations=email,
-                    RawMessage={"Data": msg}
-                )
+                if emails:
+                    for email in emails:
+                        try:
+                            ses_client.send_raw_email(
+                                Source="trainee.stefan.cole@sigmalabs.co.uk",
+                                Destinations=[email],
+                                RawMessage={"Data": msg.as_string()}
+                            )
+                            logging.info(
+                                "Successfully sent summary report email.")
+                        except ClientError as e:
+                            logging.error(
+                                "Failed to send summary report email.")
 
 
 if __name__ == "__main__":
     load_dotenv()
-
-    with get_db_connection() as db_conn:
-        print(get_station_name_crs_tuples(db_conn))

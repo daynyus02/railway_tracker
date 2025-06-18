@@ -8,7 +8,6 @@ import pandas as pd
 
 def convert_train_times_to_date_times(data: DataFrame) -> DataFrame:
     """Convert time columns to datetime objects to allow maths operations."""
-
     train_date = data.loc[0, "service_date"]
 
     time_columns = ["scheduled_arr_time", "actual_arr_time",
