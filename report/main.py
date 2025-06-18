@@ -18,6 +18,7 @@ ses_client = boto3.client("ses", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                           aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
 sns_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                           aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+s3_client = get_s3_client()
 
 
 def lambda_handler(event, context) -> dict:
@@ -25,3 +26,6 @@ def lambda_handler(event, context) -> dict:
     load_dotenv()
     try:
         logger.info("Lambda triggered, checking for existing PDF report in S3.")
+        load_new_report(s3_client)
+    except:
+        ...
