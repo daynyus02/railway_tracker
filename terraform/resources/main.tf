@@ -80,13 +80,11 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id      = data.aws_vpc.c17_vpc.id
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_rds_access" {
+resource "aws_vpc_security_group_egress_rule" "allow_all" {
   security_group_id = aws_security_group.ecs_sg.id
   cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 5432
-  to_port           = 5432
-  ip_protocol       = "tcp"
-  description       = "Allow ECS to access RDS."
+  ip_protocol       = "-1"
+  description       = "Allow all outward access."
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_http" {
