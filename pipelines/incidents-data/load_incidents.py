@@ -11,7 +11,7 @@ from psycopg2.extensions import connection as Connection
 
 from extract_incidents import extract
 from transform_incidents import transform
-from alerts_incidents import publish_to_topic_new
+from alerts_incidents import publish_to_topic_new, publish_to_topic_update
 
 logger = logging.getLogger(__name__)
 
@@ -207,6 +207,8 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
                 updated_count += 1
                 logger.info("Updated incident %s to version %s.",
                             incident_number, version_number)
+                publish_to_topic_update("PAD", "BRI", row["summary"], row["info_link"],
+                                        row["start_time"], row["end_time"], row["is_planned"])
 
             else:
                 skipped_count += 1

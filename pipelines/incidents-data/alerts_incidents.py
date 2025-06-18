@@ -43,12 +43,12 @@ def publish_to_topic_new(origin_crs: str, destination_crs: str, summary: str, in
     sns = get_sns_client()
     topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
     start_time = start_time.tz_convert("Europe/London").tz_localize(None)
-    end_time = end_time.tz_convert("Europe/London").tz_localize(None)
 
     subject = f"New incident on route {origin_crs} to {destination_crs} from {start_time.date()}."
     message = f"{summary}.\n\nThe incident will take place from {start_time}"
 
     if is_planned:
+        end_time = end_time.tz_convert("Europe/London").tz_localize(None)
         message += f" until {end_time}."
     else:
         message += "."
@@ -63,4 +63,35 @@ def publish_to_topic_new(origin_crs: str, destination_crs: str, summary: str, in
         )
         logger.info("Successfully published alert.")
     except ClientError as e:
-        logger.error("Failed to publish alert.")
+        logger.error("Failed to publish alert: %s",
+                     e.response['Error']['Message'])
+
+
+def publish_to_topic_update(origin_crs: str, destination_crs: str, summary: str, info_link: str,
+                            start_time: Timestamp, end_time: Timestamp, is_planned: bool) -> None:
+    """Publish an updated incident alert to a topic."""
+    sns = get_sns_client()
+    topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
+    start_time = start_time.tz_convert("Europe/London").tz_localize(None)
+
+    subject = f"There has been an update to an incident on route {origin_crs} to {destination_crs} from {start_time.date()}."
+    message = f"{summary}.\n\nThe incident will take place from {start_time}"
+
+    if is_planned:
+        end_time = end_time.tz_convert("Europe/London").tz_localize(None)
+        message += f" until {end_time}."
+    else:
+        message += "."
+
+    message += f"\n\nFor more information, please visit {info_link}."
+
+    try:
+        sns.publish(
+            TopicArn=topic_arn,
+            Message=message,
+            Subject=subject
+        )
+        logger.info("Successfully published alert.")
+    except ClientError as e:
+        logger.error("Failed to publish alert: %s",
+                     e.response['Error']['Message'])
