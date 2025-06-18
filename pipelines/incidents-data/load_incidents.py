@@ -11,6 +11,7 @@ from psycopg2.extensions import connection as Connection
 
 from extract_incidents import extract
 from transform_incidents import transform
+from alerts_incidents import publish_to_topic_new
 
 logger = logging.getLogger(__name__)
 
