@@ -15,8 +15,46 @@ def make_delays_heatmap(df:pd.DataFrame) -> alt.Chart:
                     scale=alt.Scale(domain=[0, delay_heatmap["avg_delay"].max()],
                                     range=["#f2f1ec", "#df543b"])
         )
-    ).properties(
-        width=200,
-        height=400
     )
     return heatmap
+
+def make_stations_cancellations_pie(df: pd.DataFrame) -> alt.Chart:
+    station_colour_scale = alt.Scale(domain=df["Station"].to_list(),
+                                    range=["#df543b",
+                                        "#a3321d",
+                                        "#f26842",
+                                        "#ff7f50",
+                                        "#ff9966",
+                                        "#ffb380",
+                                        "#ffd1b3",
+                                        "#f7a072",
+                                        "#d96e30",
+                                        "#ff6633",
+                                        "#cc4400",
+                                        "#ff8552",
+                                        "#e67300",  
+                                        "#fce5d5",   
+                                        "#732619"
+                                    ])
+
+    cancellations_pie = alt.Chart(df).mark_arc().encode(
+        theta=alt.Theta("Count:Q"),
+        color=alt.Color("Station:N", scale=station_colour_scale),
+        tooltip=[alt.Tooltip("Station"), alt.Tooltip("Count", title="Count")]
+    )
+    return cancellations_pie
+
+def make_cancellations_per_station_bar(df: pd.DataFrame) -> alt.Chart:
+    # station_cancellations_bar = alt.Scale(domain=['Cancelled','Delayed', 'On Time'], 
+    #                                     range=['#f2f1ec', '#df543b', '#808080'])
+    station_cancellation_bar = alt.Chart(df).mark_bar(size=30, color="#d5caca").encode(
+        y=alt.Y('station_name', title="Station"),
+        x=alt.X('delay_time', title="Avg. Delay time (min)"),
+        tooltip=[alt.Tooltip('station_name', title="Station Name: "),
+                alt.Tooltip('delay_time', title="Average Delay Time: ")]
+    ).properties(height = 300)
+    rule = alt.Chart(df).mark_rule(color='#df543b').encode(
+    x=alt.X('mean(delay_time):Q'),
+    tooltip=[alt.Tooltip('mean(delay_time):Q', title="Mean delay")]
+    )
+    return station_cancellation_bar + rule

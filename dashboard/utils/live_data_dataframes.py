@@ -58,7 +58,7 @@ def add_delay_time(df: pd.DataFrame) -> None:
     return df
 
 @st.cache_data
-def get_cancelled_data(df: pd.DataFrame) -> pd.DataFrame:
+def get_cancelled_data_per_operator(df: pd.DataFrame) -> pd.DataFrame:
     cancelled = df[["service_uid","operator_name", "Status"]].copy()
     cancelled = cancelled.groupby(["operator_name","Status"])["service_uid"].nunique().reset_index(name="Count")
     return cancelled[cancelled["Status"]=="Cancelled"].rename(columns={"operator_name": "Operator"})

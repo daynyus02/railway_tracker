@@ -47,6 +47,8 @@ def make_live_train_table(df: pd.DataFrame, cancelled: bool):
         "operator_name": "Operator",
         "cancel_reason": "Reason"
     }, inplace=True)
+    if cancelled:
+        live_trains["Reason"] = live_trains["Reason"].apply(lambda x: x.capitalize())
     if not cancelled:
         live_trains = live_trains.drop(columns=["Reason"])
     live_trains['Arrival Time'] = live_trains['actual_arr_time'].dt.time
@@ -58,23 +60,22 @@ def make_live_train_table(df: pd.DataFrame, cancelled: bool):
     styled_trains = live_trains.style.apply(highlight_interruption, axis=1)
     return styled_trains
 
-def make_cancellations_pie(df: pd.DataFrame) -> pd.DataFrame:
-    operator_color_scale = alt.Scale(domain=['Great Western Railway', 
-                                    'Elizabeth line', 'CrossCountry'], range=['#0A493E','#6950a1', '#CA123F'])
+def make_operator_cancellations_pie(df: pd.DataFrame) -> pd.DataFrame:
+    operator_colour_scale = alt.Scale(range=['#0A493E','#6950a1', '#CA123F'])
     cancellations_pie = alt.Chart(df).mark_arc().encode(
-        theta="Count",
-        color=alt.Color("Operator", scale=operator_color_scale),
+        theta=alt.Theta("Count:Q"),
+        color=alt.Color("Operator:N", scale=operator_colour_scale),
         tooltip=[alt.Tooltip("Operator"), alt.Tooltip("Count", title="Count")]
     )
     return cancellations_pie
 
 def make_interruptions_bar(df: pd.DataFrame) -> alt.Chart:
-    interruption_color_scale = alt.Scale(domain=['Cancelled','Delayed', 'On Time'], 
+    interruption_colour_scale = alt.Scale(domain=['Cancelled','Delayed', 'On Time'], 
                                         range=['#f2f1ec', '#df543b', '#808080'])
     interruptions_chart = alt.Chart(df).mark_bar(size=30).encode(
         x=alt.X('Status:N', axis=None),
         y=alt.Y('percentage_of_trains:Q', title="% of trains"),
-        color=alt.Color('Status:N',scale=interruption_color_scale),
+        color=alt.Color('Status:N',scale=interruption_colour_scale),
         column=alt.Column('operator_name:N', title='Operator'),
         tooltip=[alt.Tooltip('operator_name', title="Operator Name"),
                 alt.Tooltip('Status'),
