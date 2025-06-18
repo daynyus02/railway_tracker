@@ -14,18 +14,37 @@ import boto3
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
 
-ses_client = boto3.client("ses", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
-                          aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
-sns_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
-                          aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
-s3_client = get_s3_client()
-
 
 def lambda_handler(event, context) -> dict:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
-    try:
-        logger.info("Lambda triggered, checking for existing PDF report in S3.")
-        load_new_report(s3_client)
-    except:
-        ...
+    for station in stations:
+        try:
+            logger.info(
+                "Lambda triggered, checking for existing PDF report in S3.")
+            pdf = load_new_report(s3_client)
+        except:
+            logger.info("Error.")
+
+    msg = get_email_message_as_string(station_name, pdf)
+    response = ses_client.send_raw_email(
+        Source=msg['From'],
+        Destinations=[msg['To']],
+        RawMessage={'Data': msg}
+    )
+
+
+if __name__ == "__main__":
+    load_dotenv()
+
+    s3_client = boto3.client(
+        "s3", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+    sns_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
+                              aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+    ses_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
+                              aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+    subs = sns_client.list_subscriptions_by_topic(
+        TopicArn='arn:aws:sns:eu-west-2:129033205317:c17-trains-incidents-PAD-BRI')
+
+    emails = [d["Endpoint"] for d in subs["Subscriptions"]]
