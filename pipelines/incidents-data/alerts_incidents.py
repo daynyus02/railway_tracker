@@ -2,9 +2,7 @@
 
 from os import environ as ENV
 import logging
-from datetime import datetime, timezone
 
-from dotenv import load_dotenv
 from boto3 import client
 from botocore.exceptions import ClientError
 from pandas import Timestamp
