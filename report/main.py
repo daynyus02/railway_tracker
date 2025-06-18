@@ -5,7 +5,7 @@ from os import environ as ENV
 
 from dotenv import load_dotenv
 
-from extract_report_data import get_db_connection
+from extract_report_data import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
 from report import get_email_message_as_string
 from load import load_new_report, get_s3_client
@@ -55,15 +55,16 @@ def lambda_handler(event, context) -> dict:
     ses_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                               aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
 
-    with get_db_connection as conn:
+    with get_db_connection() as conn:
         stations = get_station_name_crs_tuples(conn)
 
-    for station in stations:
-        topic_arn = get_sns_topic_arn_by_station(sns_client, station[1])
+        for station in stations:
+            topic_arn = get_sns_topic_arn_by_station(sns_client, station[1])
+            data = DataFrame(get_days_data_per_station())
 
-        load_new_report()
+            load_new_report(s3_client, station[0], )
 
-        emails = get_subscriber_emails_from_topic(topic_arn)
+            emails = get_subscriber_emails_from_topic(topic_arn)
 
     for email in emails:
 

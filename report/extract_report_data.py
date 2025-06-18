@@ -7,6 +7,7 @@ from psycopg2 import connect, OperationalError
 from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import connection as Connection
 from dotenv import load_dotenv
+from pandas import DataFrame
 
 logger = logging.getLogger(__name__)
 
