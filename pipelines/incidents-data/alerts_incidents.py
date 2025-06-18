@@ -2,10 +2,12 @@
 
 from os import environ as ENV
 import logging
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from boto3 import client
 from botocore.exceptions import ClientError
+from pandas import Timestamp
 
 logging.basicConfig(
     level="INFO",
@@ -14,6 +16,10 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+logging.getLogger('boto3').setLevel(logging.CRITICAL)
+logging.getLogger('botocore').setLevel(logging.CRITICAL)
+logging.getLogger('s3transfer').setLevel(logging.CRITICAL)
+logging.getLogger('urllib3').setLevel(logging.CRITICAL)
 
 
 def get_sns_client():
@@ -27,39 +33,34 @@ def get_sns_client():
 def get_sns_topic_arn(sns_client, origin_crs: str, destination_crs: str) -> str:
     """Returns the arn for the alerts topic."""
     response = sns_client.create_topic(
-        f"c17-trains-incidents-{origin_crs}-{destination_crs}")
+        Name=f"c17-trains-incidents-{origin_crs}-{destination_crs}")
     return response["TopicArn"]
 
 
-def publish_to_topic_new(origin_crs: str, destination_crs: str, summary: str,
-                         start_time: str, end_time: str, is_planned: bool) -> None:
+def publish_to_topic_new(origin_crs: str, destination_crs: str, summary: str, info_link: str,
+                         start_time: Timestamp, end_time: Timestamp, is_planned: bool) -> None:
     """Publish a new incident alert to a topic."""
     sns = get_sns_client()
     topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
-    logger.info("Topic arn: %s.", topic_arn)
+    start_time = start_time.tz_convert("Europe/London").tz_localize(None)
+    end_time = end_time.tz_convert("Europe/London").tz_localize(None)
 
-    subject = f"New incident on route {origin_crs} to {destination_crs} from {start_time}"
-    message = summary
+    subject = f"New incident on route {origin_crs} to {destination_crs} from {start_time.date()}."
+    message = f"{summary}.\n\nThe incident will take place from {start_time}"
 
     if is_planned:
-        subject += f" to {end_time}."
+        message += f" until {end_time}."
     else:
-        subject += "."
+        message += "."
 
-    logger.info("Subject: %s.", subject)
-    logger.info("Message: %s.", message)
+    message += f"\n\nFor more information, please visit {info_link}."
 
     try:
         sns.publish(
             TopicArn=topic_arn,
-            message=message,
-            subject=subject
+            Message=message,
+            Subject=subject
         )
         logger.info("Successfully published alert.")
     except ClientError as e:
         logger.error("Failed to publish alert.")
-
-
-if __name__ == "__main__":
-    load_dotenv()
-    get_sns_client()

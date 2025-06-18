@@ -170,6 +170,8 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
                 incident_id = cur.fetchone()[0]
                 inserted_count += 1
                 logger.info("Inserted new incident %s.", incident_number)
+                publish_to_topic_new("PAD", "BRI", row["summary"], row["info_link"],
+                                     row["start_time"], row["end_time"], row["is_planned"])
 
             elif existing_versions[incident_number] != version_number:
                 logger.debug("Updating existing incident.")
