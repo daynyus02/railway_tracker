@@ -5,14 +5,42 @@ from os import environ as ENV
 
 from dotenv import load_dotenv
 
-from extract_reports import get_db_connection, get_station_name_from_crs
+from extract_report_data import get_db_connection
 from transform_summary import get_station_summary
 from report import get_email_message_as_string
 from load import load_new_report, get_s3_client
 import boto3
+from psycopg2.extras import RealDictCursor
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
+
+
+def get_station_name_crs_tuples(conn: "connection") -> list[str]:
+    """Retrieves name and crs for each station in the database as list of tuples."""
+
+    with conn.cursor() as curs:
+        curs.execute("SELECT station_name, station_crs FROM station;")
+        station_names = curs.fetchall()
+
+    return station_names
+
+
+def get_sns_topic_arn_by_station(sns_client: "Client", station_crs: str) -> str:
+    """Returns the arn for the relevant AWS SNS topic per station."""
+
+    response = sns_client.create_topic(
+        Name=f"c17-trains-reports-{station_crs}")
+    return response["TopicArn"]
+
+
+def get_subscriber_emails_from_topic(sns_client: "Client", arn: str) -> list[str]:
+    """Gets a list of emails subscribed to an AWS SNS topic."""
+
+    subs = sns_client.list_subscriptions_by_topic(
+        TopicArn=arn)
+
+    return [sub["Endpoint"] for sub in subs["Subscriptions"]]
 
 
 def lambda_handler(event, context) -> dict:
@@ -26,10 +54,16 @@ def lambda_handler(event, context) -> dict:
                               aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
     ses_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                               aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
-    subs = sns_client.list_subscriptions_by_topic(
-        TopicArn='arn:aws:sns:eu-west-2:129033205317:c17-trains-incidents-PAD-BRI')
 
-    emails = [d["Endpoint"] for d in subs["Subscriptions"]]
+    with get_db_connection as conn:
+        stations = get_station_name_crs_tuples(conn)
+
+    for station in stations:
+        topic_arn = get_sns_topic_arn_by_station(sns_client, station[1])
+
+        load_new_report()
+
+        emails = get_subscriber_emails_from_topic(topic_arn)
 
     for email in emails:
 
@@ -46,3 +80,10 @@ def lambda_handler(event, context) -> dict:
             Destinations=[msg['To']],
             RawMessage={'Data': msg}
         )
+
+
+if __name__ == "__main__":
+    load_dotenv()
+
+    with get_db_connection() as db_conn:
+        print(get_station_name_crs_tuples(db_conn))
