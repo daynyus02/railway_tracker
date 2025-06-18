@@ -345,6 +345,9 @@ resource "aws_lambda_function" "incidents_pipeline_lambda" {
       DB_PASSWORD   = var.DB_PASSWORD
       DB_PORT       = var.DB_PORT
       INCIDENTS_URL = var.INCIDENTS_URL
+      REGION        = var.REGION
+      ACCESS_KEY    = var.ACCESS_KEY
+      SECRET_KEY    = var.SECRET_KEY
     }
   }
 }
