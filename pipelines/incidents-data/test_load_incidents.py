@@ -74,7 +74,7 @@ def test_route_caching(sample_extracted_data_pad_bri, fake_conn):
             patch("load_incidents.get_station_id_map", return_value={
                 "London Paddington": 1,
                 "Bristol Temple Meads": 2}), \
-            patch("load_incidents.publish_to_topic_new", return_value=None):
+            patch("load_incidents.publish_new_incident_to_topic", return_value=None):
 
         fake_cursor = fake_conn.cursor.return_value.__enter__.return_value
         fake_cursor.fetchone.return_value = [None]
@@ -93,14 +93,13 @@ def test_route_caching(sample_extracted_data_pad_bri, fake_conn):
 
 def test_insert_incident_commits_once(fake_conn, sample_extracted_data_pad_bri):
     """Test that commit is called in insert incidents."""
-    with patch("load_incidents.get_route_id", return_value=1) as mock_get_route_id, \
-            patch("load_incidents.get_existing_incident_keys", return_value={}), \
+    with patch("load_incidents.get_existing_incident_keys", return_value={}), \
             patch("load_incidents.get_operator_id_map",
                   return_value={"Great Western Railway": 1}), \
             patch("load_incidents.get_station_id_map", return_value={
                 "London Paddington": 1,
                 "Bristol Temple Meads": 2}), \
-            patch("load_incidents.publish_to_topic_new", return_value=None):
+            patch("load_incidents.publish_new_incident_to_topic", return_value=None):
 
         fake_cursor = fake_conn.cursor.return_value.__enter__.return_value
         fake_cursor.fetchone.return_value = [None]
