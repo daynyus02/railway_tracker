@@ -5,12 +5,13 @@ from os import environ as ENV
 
 from dotenv import load_dotenv
 
+import boto3
+from pandas import DataFrame
+
 from extract_report_data import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
-from report import get_email_message_as_string
+from report import generate_pdf, get_email_message_as_string
 from load import load_new_report, get_s3_client
-import boto3
-from psycopg2.extras import RealDictCursor
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
@@ -59,28 +60,22 @@ def lambda_handler(event, context) -> dict:
         stations = get_station_name_crs_tuples(conn)
 
         for station in stations:
+            data = DataFrame(get_days_data_per_station(station[1], conn))
+            transformed_data = get_station_summary(data)
+
+            report = generate_pdf(station[0], transformed_data)
+
             topic_arn = get_sns_topic_arn_by_station(sns_client, station[1])
-            data = DataFrame(get_days_data_per_station())
-
-            load_new_report(s3_client, station[0], )
-
             emails = get_subscriber_emails_from_topic(topic_arn)
+            report = generate_pdf()
 
-    for email in emails:
-
-        try:
-            logger.info(
-                "Lambda triggered, checking for existing PDF report in S3.")
-            pdf = load_new_report(s3_client)
-        except:
-            logger.info("Error.")
-
-        msg = get_email_message_as_string(station_name, pdf)
-        response = ses_client.send_raw_email(
-            Source=msg['From'],
-            Destinations=[msg['To']],
-            RawMessage={'Data': msg}
-        )
+            msg = get_email_message_as_string(station[0], report)
+            for email in emails:
+                ses_client.send_raw_email(
+                    Source="trainee.stefan.cole@sigmalabs.co.uk",
+                    Destinations=email,
+                    RawMessage={"Data": msg}
+                )
 
 
 if __name__ == "__main__":

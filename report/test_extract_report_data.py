@@ -2,6 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 from psycopg2.extras import RealDictRow
+from pandas import DataFrame
 
 from extract_report_data import (get_db_connection, get_days_data_per_station,
                                  get_station_id_from_crs)
@@ -46,7 +47,7 @@ def test_get_station_id_from_crs_returns_none_crs_not_present():
 
 
 @patch("extract_report_data.get_station_id_from_crs")
-def test_days_data_per_station_returns_correct_data(fake_station_id, test_valid_past_day_data, test_valid_past_day_data_df):
+def test_days_data_per_station_returns_correct_data(fake_station_id, test_valid_past_day_data):
     """Tests that get_station_id function returns None when CRS
     does not correspond to a station in database."""
 
@@ -57,7 +58,7 @@ def test_days_data_per_station_returns_correct_data(fake_station_id, test_valid_
     mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
 
     assert get_days_data_per_station(
-        "PAD", mock_conn) == test_valid_past_day_data_df
+        "PAD", mock_conn) == test_valid_past_day_data
 
 
 @patch("extract_report_data.get_station_id_from_crs")
