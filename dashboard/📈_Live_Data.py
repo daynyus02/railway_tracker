@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import streamlit as st
 import psycopg2
 
-from utils.live_data_visualisations import make_live_train_table, make_operator_cancellations_pie, make_interruptions_bar
+from utils.live_data_visualisations import make_operator_cancellations_pie, make_interruptions_bar, make_live_arrival_train_table, make_live_departure_train_table
 from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator, get_route_data, get_interruption_data
 
 def get_connection():
@@ -36,6 +36,7 @@ if __name__ == '__main__':
     if not data.empty:
         convert_times_to_datetime(data)
         add_status_column(data)
+        print(data.columns)
 
         st.title("🚆 Railway Tracker")
 
@@ -72,6 +73,7 @@ if __name__ == '__main__':
         format="HH:mm"
         )
         start, end = selected_time_range
+        print(filtered_data.dtypes)
         filtered_data = filtered_data[
         (filtered_data['scheduled_dep_time'].dt.time >= start) & (filtered_data['scheduled_dep_time'].dt.time <= end)]
         interruption_filter = st.sidebar.radio("Filter Interruption", ["All", "Delayed", "Cancelled"])
@@ -80,11 +82,18 @@ if __name__ == '__main__':
 
 ######### Live train departure table #########
         if interruption_filter == "Cancelled":
-            styled_trains = make_live_train_table(filtered_data, True)
+            styled_arrivals = make_live_arrival_train_table(filtered_data, True)
         else:
-            styled_trains = make_live_train_table(filtered_data, False)
-        st.subheader("Live Timetable 🚇:")
-        st.dataframe(styled_trains, hide_index=True, height=210)
+            styled_arrivals = make_live_arrival_train_table(filtered_data, False)
+        st.subheader("Live Arrivals 🚇:")
+        st.dataframe(styled_arrivals, hide_index=True, height=210)
+
+        if interruption_filter == "Cancelled":
+            styled_departures = make_live_departure_train_table(filtered_data, True)
+        else:
+            styled_departures = make_live_departure_train_table(filtered_data, False)
+        st.subheader("Live Departures 🚇:")
+        st.dataframe(styled_departures, hide_index=True, height=210)
 
 ######### Routes table #########
         all_delays = get_delays(data)

@@ -26,12 +26,43 @@ def highlight_interruption(row) -> list[str]:
         colours[row.index.get_loc("Operator")] = highlight_operators(row)
     return colours
 
-def make_live_train_table(df: pd.DataFrame, cancelled: bool):
+def make_live_arrival_train_table(df: pd.DataFrame, cancelled: bool):
+    live_trains = df[[
+        "service_uid",
+        "station_name",
+        "origin_name",
+        "actual_arr_time",
+        "Status",
+        "cancel_reason",
+        "platform",
+        "operator_name"
+    ]].copy()
+
+    live_trains.rename(columns={
+        "service_uid": "Service ID",
+        "station_name": "Arrival Station",
+        "origin_name": "Origin",
+        "platform": "Platform",
+        "operator_name": "Operator",
+        "cancel_reason": "Reason"
+    }, inplace=True)
+    if cancelled:
+        live_trains["Reason"] = live_trains["Reason"].apply(lambda x: x.capitalize())
+    if not cancelled:
+        live_trains = live_trains.drop(columns=["Reason"])
+    live_trains = live_trains.dropna(subset=['actual_arr_time'])
+    live_trains['Arrival Time'] = live_trains['actual_arr_time'].dt.time
+    live_trains = live_trains.drop(columns=["actual_arr_time"])
+    live_trains = live_trains.fillna('-')
+    live_trains = live_trains.sort_values(by='Arrival Time')
+    styled_trains = live_trains.style.apply(highlight_interruption, axis=1)
+    return styled_trains
+
+def make_live_departure_train_table(df: pd.DataFrame, cancelled: bool):
     live_trains = df[[
         "service_uid",
         "station_name",
         "destination_name",
-        "actual_arr_time",
         "actual_dep_time",
         "Status",
         "cancel_reason",
@@ -51,9 +82,9 @@ def make_live_train_table(df: pd.DataFrame, cancelled: bool):
         live_trains["Reason"] = live_trains["Reason"].apply(lambda x: x.capitalize())
     if not cancelled:
         live_trains = live_trains.drop(columns=["Reason"])
-    live_trains['Arrival Time'] = live_trains['actual_arr_time'].dt.time
+    live_trains = live_trains.dropna(subset=['actual_dep_time'])
     live_trains['Departure Time'] = live_trains['actual_dep_time'].dt.time
-    live_trains = live_trains.drop(columns=["actual_dep_time", "actual_arr_time"])
+    live_trains = live_trains.drop(columns=["actual_dep_time"])
 
     live_trains = live_trains.fillna('-')
     live_trains = live_trains.sort_values(by='Departure Time')
