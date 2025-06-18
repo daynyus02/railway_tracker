@@ -173,17 +173,18 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
             elif existing_versions[incident_number] != version_number:
                 logger.debug("Updating existing incident.")
                 update_query = """
-                    UPDATE incident
-                    SET route_id = %s,
-                        start_time = %s,
-                        end_time = %s,
-                        description = %s,
-                        version_number = %s,
-                        is_planned = %s,
-                        info_link = %s,
-                        summary = %s
-                    WHERE incident_number = %s
-                    RETURNING incident_id;
+                UPDATE incident
+                SET route_id = %s,
+                    start_time = %s,
+                    end_time = %s,
+                    description = %s,
+                    version_number = %s,
+                    is_planned = %s,
+                    info_link = %s,
+                    summary = %s
+                WHERE incident_number = %s
+                RETURNING incident_id
+                ;
                 """
 
                 values = (
@@ -216,7 +217,8 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
                 INSERT INTO operator_incident_assignment
                     (incident_id, operator_id)
                 VALUES %s
-                ON CONFLICT DO NOTHING;
+                ON CONFLICT DO NOTHING
+                ;
                 """
                 execute_values(cur, assignment_query, assignment_values)
 
