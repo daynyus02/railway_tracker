@@ -10,5 +10,6 @@ COPY extract_incidents.py .
 COPY transform_incidents.py .
 COPY load_incidents.py .
 COPY main_incidents.py .
+COPY alerts_incidents.py .
 
 CMD ["main_incidents.lambda_handler"]
