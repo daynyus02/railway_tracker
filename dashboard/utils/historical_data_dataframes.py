@@ -1,6 +1,24 @@
 import pandas as pd
 import streamlit as st
 
+@st.cache_resource
+def fetch_data(_connection)-> pd.DataFrame:
+    query = """SELECT * 
+               FROM train_info_view;"""
+    data = pd.read_sql_query(query, _connection)
+    _connection.close()
+    return data
+
+def station_to_crs(station_name: str) -> str:
+    crs_codes = {
+    "London Paddington": "PAD",
+    "Bristol Temple Meads": "BRI",
+    "Reading": "RDG",
+    "Didcot Parkway": "DID",
+    "Bath Spa": "BTH"
+}
+    return crs_codes.get(station_name)
+
 @st.cache_data
 def get_unique_routes(data:pd.DataFrame):
     unique_routes = data[['origin_name', 'destination_name']].drop_duplicates()
