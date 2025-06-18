@@ -18,24 +18,6 @@ logger.setLevel("DEBUG")
 def lambda_handler(event, context) -> dict:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
-    for station in stations:
-        try:
-            logger.info(
-                "Lambda triggered, checking for existing PDF report in S3.")
-            pdf = load_new_report(s3_client)
-        except:
-            logger.info("Error.")
-
-    msg = get_email_message_as_string(station_name, pdf)
-    response = ses_client.send_raw_email(
-        Source=msg['From'],
-        Destinations=[msg['To']],
-        RawMessage={'Data': msg}
-    )
-
-
-if __name__ == "__main__":
-    load_dotenv()
 
     s3_client = boto3.client(
         "s3", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
@@ -48,3 +30,19 @@ if __name__ == "__main__":
         TopicArn='arn:aws:sns:eu-west-2:129033205317:c17-trains-incidents-PAD-BRI')
 
     emails = [d["Endpoint"] for d in subs["Subscriptions"]]
+
+    for email in emails:
+
+        try:
+            logger.info(
+                "Lambda triggered, checking for existing PDF report in S3.")
+            pdf = load_new_report(s3_client)
+        except:
+            logger.info("Error.")
+
+        msg = get_email_message_as_string(station_name, pdf)
+        response = ses_client.send_raw_email(
+            Source=msg['From'],
+            Destinations=[msg['To']],
+            RawMessage={'Data': msg}
+        )
