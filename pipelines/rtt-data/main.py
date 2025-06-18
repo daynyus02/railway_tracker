@@ -19,6 +19,7 @@ def run(stations: list[str]) -> None:
     with get_connection() as db_connection:
         fetched_data = fetch_train_data(stations)
         transformed_fetched_data = transform_train_data(fetched_data)
+        send_notification(transformed_fetched_data)
         load_data_into_database(transformed_fetched_data, db_connection)
 
 
