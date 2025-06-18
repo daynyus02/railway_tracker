@@ -16,7 +16,7 @@ from extract import get_days_data_per_station, get_db_connection, get_station_na
 from transform_summary import get_station_summary
 
 
-def generate_pdf(station_crs: str, station_name: str, data: dict) -> bytes:
+def generate_pdf(station_name: str, data: dict) -> bytes:
     """Generates summary report PDF for given station."""
 
     pdf_buffer = BytesIO()
