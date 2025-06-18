@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from pandas import DataFrame
 
-from report.extract_reports import get_days_data_per_station, get_db_connection, get_station_name_from_crs
+from extract_reports import get_days_data_per_station, get_db_connection, get_station_name_from_crs
 from transform_summary import get_station_summary
 from report import generate_pdf
 
