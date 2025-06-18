@@ -272,7 +272,7 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = ["arn:aws:logs:eu-west-2:${var.ACCOUNT_ID}:*"]
+    resources = ["arn:aws:logs:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 
   statement {
@@ -280,7 +280,7 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
     actions = [
       "sns:Publish"
     ]
-    resources = ["arn:aws:sns:eu-west-2:${var.ACCOUNT_ID}:*"]
+    resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 }
 
