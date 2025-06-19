@@ -73,9 +73,8 @@ def send_report_emails(ses_client: "Client", emails: list[str], msg: bytes) -> d
         }
 
 
-def lambda_handler(event, context) -> dict:
-    """AWS Lambda handler that runs the ETL pipeline for summary reports."""
-    load_dotenv()
+def run_full_email_pipeline() -> None:
+    """Runs the ETL pipeline for summary reports and sends email reports."""
 
     s3_client = get_s3_client()
     sns_client = boto3.client("sns", aws_access_key_id=ENV["ACCESS_KEY"],
@@ -103,3 +102,10 @@ def lambda_handler(event, context) -> dict:
                 if emails:
                     sent_status = send_report_emails(ses_client, emails, msg)
                     logging.info("%s", sent_status)
+
+
+def lambda_handler(event, context) -> dict:
+    """AWS Lambda handler that runs the ETL pipeline for summary reports."""
+    load_dotenv()
+
+    run_full_email_pipeline()
