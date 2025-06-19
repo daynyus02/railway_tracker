@@ -328,7 +328,7 @@ data "aws_iam_policy_document" "reports_lambda_role_permissions_policy_doc" {
   statement {
     effect = "Allow"
     actions = [
-      "sns:Publish",
+      "sns:ListSubscriptionsByTopic",
       "sns:CreateTopic"
     ]
     resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
@@ -337,7 +337,7 @@ data "aws_iam_policy_document" "reports_lambda_role_permissions_policy_doc" {
   statement {
     effect = "Allow"
     actions = [
-      "ses:*"
+      "ses:SendRawEmail"
     ]
     resources = ["arn:aws:ses:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
