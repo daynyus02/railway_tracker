@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from psycopg2.extras import RealDictRow
 
 from extract_reports import (get_db_connection, get_days_data_per_station,
-                             get_station_id_from_crs)
+                             get_station_id_from_crs, get_station_name_from_crs)
 
 
 def test_get_db_connection_called_once():
@@ -43,6 +43,30 @@ def test_get_station_id_from_crs_returns_none_crs_not_present():
     mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
 
     assert not get_station_id_from_crs("PAD", mock_conn)
+
+
+def test_get_station_name_from_crs_true_with_valid_crs():
+    """Tests that get_station_name function returns name when valid CRS is passed."""
+    mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = RealDictRow(
+        {"station_id": 1, "station_name": "London Paddington", "station_crs": "PAD"})
+
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    assert get_station_name_from_crs("PAD", mock_conn) == "London Paddington"
+
+
+def test_get_station_name_from_crs_returns_none_crs_not_present():
+    """Tests that get_station_name function returns None when CRS 
+    does not correspond to a station in database."""
+    mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = None
+
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    assert not get_station_name_from_crs("PAD", mock_conn)
 
 
 @patch("extract_reports.get_station_id_from_crs")
