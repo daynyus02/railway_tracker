@@ -6,7 +6,7 @@ import logging
 
 from botocore.exceptions import ClientError
 
-from load import report_already_exists
+from load import report_already_exists, load_new_report
 
 
 @pytest.fixture
@@ -76,5 +76,38 @@ def test_report_already_exists_file_raises_client_error(mock_env, caplog):
     )
 
 
-@patch("load.report_already_exists", return_value=True)
-def test_load_new_report_correct_logs
+@patch("load.report_already_exists", return_value=False)
+def test_load_new_report_correct_logs(mock_client, mock_env, caplog):
+
+    caplog.set_level(logging.INFO)
+
+    mock_client.put_object.return_value = {}
+
+    load_new_report(mock_client, "London Paddington", {})
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelname == "INFO"
+    assert caplog.records[0].message == (
+        "london_paddington_summary_report_19-06-2025.pdf file successfully created in S3."
+    )
+
+
+@patch("load.report_already_exists", return_value=False)
+def test_load_new_report_correct_error_logs(mock_client, mock_env, caplog):
+
+    caplog.set_level(logging.INFO)
+
+    mock_client.put_object.side_effect = ClientError({
+        'Error': {
+            'Code': '500',
+            'Message': 'Unknown'
+        }
+    }, 'PutObject')
+
+    load_new_report(mock_client, "London Paddington", {})
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelname == "ERROR"
+    assert caplog.records[0].message == (
+        "Failed to load report to S3 bucket: An error occurred (500) when calling the PutObject operation: Unknown."
+    )
