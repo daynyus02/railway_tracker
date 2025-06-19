@@ -45,7 +45,7 @@ def report_already_exists(s3_client: client, filename: str) -> bool:
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchKey' or e.response['Error']['Code'] == '404':
-            logger.info("%s does not already exist in S3")
+            logger.info("%s does not already exist in S3", filename)
             return False
         logger.error(
             "Error accessing S3 bucket to check for existing file.")
