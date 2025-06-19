@@ -2,12 +2,16 @@ FROM python:3.13
 
 WORKDIR /app
 
-COPY requirements.txt
-RUN pip install --no-cash-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY pages/ .
-COPY utils/ .
-COPY .streamlit/ .
+COPY utils/ utils/
+COPY .streamlit .stremlit/
 COPY logo.png .
-COPY 📈_Live_Data.py
-CMD ["streamlit", "run", "📈_Live_Data.py"]
+COPY logo_words.png .
+COPY live_data.py .
+COPY historical_data.py .
+COPY subscriptions.py .
+COPY reports.py .
+COPY dashboard.py .
+CMD ["streamlit", "run", "dashboard.py"]
