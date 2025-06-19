@@ -8,17 +8,18 @@ from dotenv import load_dotenv
 import boto3
 from pandas import DataFrame
 from botocore.exceptions import ClientError
+from psycopg2.extensions import connection as Connection
 
 from extract_report_data import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
 from report import generate_pdf, get_email_message_as_string
-# from load import load_new_report, get_s3_client
+from load import load_new_report, get_s3_client
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
 
 
-def get_station_name_crs_tuples(conn: "connection") -> list[str]:
+def get_station_name_crs_tuples(conn: Connection) -> list[str]:
     """Retrieves name and crs for each station in the database as list of tuples."""
 
     with conn.cursor() as curs:
@@ -49,6 +50,7 @@ def lambda_handler(event, context) -> dict:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
 
+    s3_client = get_s3_client()
     sns_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
                               aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
     ses_client = boto3.client("ses", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
@@ -63,6 +65,7 @@ def lambda_handler(event, context) -> dict:
                 transformed_data = get_station_summary(DataFrame(data))
 
                 report = generate_pdf(station[0], transformed_data)
+                load_new_report(s3_client, station[0], report)
                 msg = get_email_message_as_string(station[0], report)
 
                 topic_arn = get_sns_topic_arn_by_station(
