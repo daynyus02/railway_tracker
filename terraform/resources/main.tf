@@ -307,7 +307,8 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
   statement {
     effect = "Allow"
     actions = [
-      "sns:*"
+      "sns:Publish",
+      "sns:CreateTopic"
     ]
     resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
@@ -322,6 +323,15 @@ data "aws_iam_policy_document" "reports_lambda_role_permissions_policy_doc" {
       "logs:PutLogEvents"
     ]
     resources = ["arn:aws:logs:${var.REGION}:${var.ACCOUNT_ID}:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sns:Publish",
+      "sns:CreateTopic"
+    ]
+    resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 
   statement {
