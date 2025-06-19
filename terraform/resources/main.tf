@@ -129,6 +129,10 @@ data "aws_iam_policy" "s3_full_access" {
   arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
+data "aws_iam_policy" "sns_full_access" {
+  arn = "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+}
+
 resource "aws_iam_role" "ecs_task_exec_role" {
   name = "c17-trains-ecs-task-exec-role"
 
@@ -164,6 +168,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecr" {
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_s3" {
   role       = aws_iam_role.ecs_task_exec_role.name
   policy_arn = data.aws_iam_policy.s3_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_sns" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = data.aws_iam_policy.sns_full_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs_role" {
