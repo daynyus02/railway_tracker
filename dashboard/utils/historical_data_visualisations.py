@@ -47,8 +47,8 @@ def make_stations_cancellations_pie(df: pd.DataFrame) -> alt.Chart:
     )
     return cancellations_pie
 
-def make_cancellations_per_station_bar(df: pd.DataFrame) -> alt.Chart:
-    """Makes a pie chart showing cancellation counts per station compared to the mean."""
+def make_delay_per_station_bar(df: pd.DataFrame) -> alt.Chart:
+    """Makes a pie chart showing delay times per station compared to the mean."""
     station_cancellation_bar = alt.Chart(df).mark_bar(size=30, color="#d5caca").encode(
         y=alt.Y('station_name', title="Station"),
         x=alt.X('delay_time', title="Avg. Delay time (min)"),
@@ -58,6 +58,20 @@ def make_cancellations_per_station_bar(df: pd.DataFrame) -> alt.Chart:
     rule = alt.Chart(df).mark_rule(color='#df543b').encode(
     x=alt.X('mean(delay_time):Q'),
     tooltip=[alt.Tooltip('mean(delay_time):Q', title="Mean delay")]
+    )
+    return station_cancellation_bar + rule
+
+def make_cancellations_per_station_bar(df: pd.DataFrame) -> alt.Chart:
+    """Makes a pie chart showing cancellation counts per station compared to the mean."""
+    station_cancellation_bar = alt.Chart(df).mark_bar(size=30, color="#d5caca").encode(
+        y=alt.Y('Station'),
+        x=alt.X('Count', title="Cancelled trains"),
+        tooltip=[alt.Tooltip('Station', title="Station Name: "),
+                alt.Tooltip('Count', title="Cancelled trains:")]
+    ).properties(height = 300)
+    rule = alt.Chart(df).mark_rule(color='#df543b').encode(
+    x=alt.X('mean(Count):Q'),
+    tooltip=[alt.Tooltip('mean(Count):Q', title="Mean cancellation count: ")]
     )
     return station_cancellation_bar + rule
 

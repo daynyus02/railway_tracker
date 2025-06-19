@@ -9,7 +9,7 @@ import psycopg2
 
 from utils.live_data_dataframes import convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator
 from utils.live_data_visualisations import make_operator_cancellations_pie
-from utils.historical_data_visualisations import make_delays_heatmap, make_stations_cancellations_pie, make_cancellations_per_station_bar
+from utils.historical_data_visualisations import make_delays_heatmap, make_stations_cancellations_pie, make_delay_per_station_bar, make_cancellations_per_station_bar
 from utils.historical_data_dataframes import get_cancellation_data_per_station, get_avg_delay_per_station,fetch_data
 
 
@@ -57,13 +57,18 @@ with col2:
     st.subheader("Cancellations per station:")
     st.altair_chart(station_cancellations_pie)
 
-######### Cancellations per station bar #########
+######### Delays per station bar #########
 delays_per_station = get_delays(data)
 delays_per_station = add_delay_time(delays_per_station)
 delays_per_station = get_avg_delay_per_station(delays_per_station)
-delays_per_station_bar = make_cancellations_per_station_bar(delays_per_station)
+delays_per_station_bar = make_delay_per_station_bar(delays_per_station)
 st.subheader("Average delay per station: ")
 st.altair_chart(delays_per_station_bar)
+
+######### Cancellations per station bar #########
+st.subheader("Average cancellations per station: ")
+cancellations_bar = make_cancellations_per_station_bar(station_cancellations)
+st.altair_chart(cancellations_bar)
 
 if __name__ == '__main__':
     pass
