@@ -95,7 +95,3 @@ def lambda_handler(event, context) -> dict:
                             "statusCode": 200,
                             "body": "Summary report emails successfully sent."
                         }
-
-
-if __name__ == "__main__":
-    load_dotenv()

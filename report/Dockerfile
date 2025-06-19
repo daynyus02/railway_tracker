@@ -10,5 +10,6 @@ COPY extract_reports.py .
 COPY transform_summary.py .
 COPY load_reports.py .
 COPY main_reports.py .
+COPY report.py .
 
 CMD ["main_reports.lambda_handler"]
