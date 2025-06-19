@@ -4,7 +4,7 @@ import datetime
 from dotenv import load_dotenv
 import streamlit as st
 
-from utils.live_data_visualisations import make_operator_cancellations_pie, make_interruptions_bar, make_live_train_table
+from utils.live_data_visualisations import make_interruptions_bar, make_live_train_table
 from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator, get_route_data, get_interruption_data, get_connection
 
 if __name__ == '__main__':
