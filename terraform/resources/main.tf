@@ -347,6 +347,21 @@ resource "aws_iam_role_policy_attachment" "pipeline_lambda_role_policy_connectio
   policy_arn = aws_iam_policy.pipeline_lambda_role_permissions_policy.arn
 }
 
+resource "aws_iam_role" "reports_lambda_role" {
+  name               = "c17-trains-reports-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_role_trust_policy_doc.json
+}
+
+resource "aws_iam_policy" "reports_lambda_role_permissions_policy" {
+  name   = "c17-trains-reports-lambda-permissions-policy"
+  policy = data.aws_iam_policy_document.reports_lambda_role_permissions_policy_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "reports_lambda_role_policy_connection" {
+  role       = aws_iam_role.reports_lambda_role.name
+  policy_arn = aws_iam_policy.reports_lambda_role_permissions_policy.arn
+}
+
 # RTT Pipeline Lambda
 
 resource "aws_lambda_function" "rtt_pipeline_lambda" {
@@ -400,6 +415,32 @@ resource "aws_lambda_function" "incidents_pipeline_lambda" {
   }
 }
 
+# Reports Lambda
+
+resource "aws_lambda_function" "reports_lambda" {
+  function_name = "c17-trains-lambda-reports"
+  description   = "Generates daily summary reports. Triggered by an EventBridge."
+  role          = aws_iam_role.reports_lambda_role.arn
+  package_type  = "Image"
+  image_uri     = data.aws_ecr_image.reports_lambda_image_version.image_uri
+  timeout       = 240
+  memory_size   = 512
+  depends_on    = [aws_iam_role_policy_attachment.reports_lambda_role_policy_connection]
+
+  environment {
+    variables = {
+      DB_HOST           = var.DB_HOST
+      DB_NAME           = var.DB_NAME
+      DB_USER           = var.DB_USER
+      DB_PASSWORD       = var.DB_PASSWORD
+      DB_PORT           = var.DB_PORT
+      ACCESS_KEY        = var.ACCESS_KEY
+      SECRET_ACCESS_KEY = var.SECRET_KEY
+      S3_BUCKET_NAME    = aws_s3_bucket.s3_bucket.bucket
+    }
+  }
+}
+
 # EVENTBRIDGE
 
 # Scheduler permissions
@@ -433,7 +474,8 @@ resource "aws_iam_role_policy" "eventbridge_invoke_lambda_policy" {
         Effect = "Allow"
         Resource = [
           aws_lambda_function.rtt_pipeline_lambda.arn,
-          aws_lambda_function.incidents_pipeline_lambda.arn
+          aws_lambda_function.incidents_pipeline_lambda.arn,
+          aws_lambda_function.reports_lambda.arn
         ]
       }
     ]
@@ -472,6 +514,24 @@ resource "aws_scheduler_schedule" "incidents_pipeline_lambda_schedule" {
 
   target {
     arn      = aws_lambda_function.incidents_pipeline_lambda.arn
+    role_arn = aws_iam_role.scheduler_role.arn
+  }
+}
+
+# Scheduler for reports lambda
+
+resource "aws_scheduler_schedule" "reports_lambda_schedule" {
+  name       = "c17-trains-schedule-reports"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "cron(0 9 * * ? *)"
+
+  target {
+    arn      = aws_lambda_function.reports_lambda.arn
     role_arn = aws_iam_role.scheduler_role.arn
   }
 }
