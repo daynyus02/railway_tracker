@@ -269,7 +269,7 @@ resource "aws_ecs_service" "dashboard_service" {
 
 # LAMBDA
 
-# Permissions for RTT and incidents pipeline lambda
+# Permissions
 
 data "aws_iam_policy_document" "lambda_role_trust_policy_doc" {
   statement {
