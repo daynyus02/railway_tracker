@@ -70,7 +70,7 @@ def get_delays(df: pd.DataFrame) -> pd.DataFrame:
 def add_delay_time(df: pd.DataFrame) -> None:
     """Adds a delay time column containing the delay in minutes."""
     df["delay_time"] = df["actual_dep_time"] - df["scheduled_dep_time"]
-    df = df[df["delay_time"] > pd.Timedelta(0)]
+    df = df[df["delay_time"] >= pd.Timedelta(0)]
     df = df.dropna(subset=["delay_time"])
     df["delay_time"] = df["delay_time"].dt.total_seconds() // 60
     return df

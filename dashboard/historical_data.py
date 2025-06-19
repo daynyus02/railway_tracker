@@ -9,12 +9,12 @@ import psycopg2
 
 from utils.live_data_dataframes import convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator
 from utils.live_data_visualisations import make_operator_cancellations_pie
-from utils.historical_data_visualisations import make_delays_heatmap, make_stations_cancellations_pie, make_delay_per_station_bar, make_cancellations_per_station_bar
+from utils.historical_data_visualisations import make_stations_cancellations_pie, make_delay_per_station_bar, make_cancellations_per_station_bar, make_delays_area_chart, make_new_heatmap
 from utils.historical_data_dataframes import get_cancellation_data_per_station, get_avg_delay_per_station,fetch_data
 
 st.title("💾 Historical Data:")
-window_filter = st.radio("Filter Date Window:", ["On", "Before", "After"], horizontal=True)
-filter_date = st.date_input(label="Show data after:")
+window_filter = st.sidebar.radio("Filter Date Window:", ["On", "Before", "After"], horizontal=True)
+filter_date = st.sidebar.date_input(label="Show data after:")
 load_dotenv()
 conn = psycopg2.connect(host=ENV['DB_HOST'],
                             port=ENV['DB_PORT'],
@@ -36,12 +36,19 @@ delays=get_delays(data)
 delays = add_delay_time(delays)
 
 ######### Heatmap of delays over time #########
-heatmap = make_delays_heatmap(delays)
+heatmap_test = add_delay_time(data)
+selected_station = st.selectbox("Choose a statiion: ", options=["All"] + sorted(delays["station_name"].unique()))
+heatmap = make_new_heatmap(heatmap_test, selected_station)
 st.subheader("Delay peak times:")
 if data.empty:
     st.warning("No Data.")
 else:
     st.altair_chart(heatmap)
+
+######### Area chart of delays and cancellations over time #########
+st.subheader("Interruptions over time: ")
+delays_area = make_delays_area_chart(data)
+st.altair_chart(delays_area)
 ######### Cancellations pie charts #########
 col1,col2 = st.columns(2)
 with col1:

@@ -2,23 +2,49 @@
 import pandas as pd
 import altair as alt
 
-def make_delays_heatmap(df:pd.DataFrame) -> alt.Chart:
+def make_new_heatmap(df: pd.DataFrame, station: str) -> alt.Chart:
     """Produces a heatmap showing average delay time per hour."""
-    delay_heatmap = df[["delay_time", "scheduled_dep_time", "operator_name"]].copy()
+    delay_heatmap = df[["delay_time", "scheduled_dep_time", "station_name"]].copy()
     delay_heatmap["hour"] = delay_heatmap["scheduled_dep_time"].dt.hour
-    delay_heatmap = delay_heatmap.groupby(["hour", "operator_name"])["delay_time"].mean().reset_index()
+
+    all_avg = delay_heatmap.groupby(["hour", "station_name"])["delay_time"].mean().reset_index()
+    all_avg["avg_delay"] = all_avg["delay_time"].round(1)
+    max_delay = all_avg["avg_delay"].max()
+
+    if station != "All":
+        delay_heatmap = delay_heatmap[delay_heatmap["station_name"] == station]
+        delay_heatmap = delay_heatmap.groupby("hour")["delay_time"].mean().reset_index()
+        delay_heatmap["station_label"] = station
+
+    else:
+        delay_heatmap = delay_heatmap.groupby("hour")["delay_time"].mean().reset_index()
+        delay_heatmap["station_label"] = "All Stations"
+
     delay_heatmap = delay_heatmap.rename(columns={"delay_time": "avg_delay"})
-    delay_heatmap["avg_delay"] = delay_heatmap["avg_delay"].round(decimals=1)
+    delay_heatmap["avg_delay"] = delay_heatmap["avg_delay"].round(1)
 
     heatmap = alt.Chart(delay_heatmap).mark_rect().encode(
         x=alt.X('hour:O', title="Hour in the day"),
-        y=alt.Y('operator_name:N', title="Operator"),
-        color=alt.Color('avg_delay:Q', title="Average Delay (min)",
-                    scale=alt.Scale(domain=[0, delay_heatmap["avg_delay"].max()],
-                                    range=["#f2f1ec", "#df543b"])
-        )
+        y=alt.Y("station_label:N", title=None),
+        color=alt.Color('avg_delay:Q', title="Minutes Delayed",
+                        scale=alt.Scale(domain=[0, max_delay],
+                                        range=["#f2f1ec", "#df543b"]))
     )
     return heatmap
+
+def make_delays_area_chart(df:pd.DataFrame) -> alt.Chart:
+    """Produces a heatmap showing average delay time per hour."""
+    delay_area = df[["scheduled_dep_time", "Status"]].copy()
+    delay_area["hour"] = delay_area["scheduled_dep_time"].dt.hour
+    delay_area = delay_area.groupby(["hour", "Status"]).count().reset_index()
+
+    area_chart_colours = alt.Scale(domain=df["Status"].tolist(), range=["#df543b", "#3d3d3d", "#d5caca"])
+    delays_area = alt.Chart(delay_area).mark_area().encode(
+        x=alt.X('hour:O', title="Hour in the day"),
+        y=alt.Y('scheduled_dep_time', title="Count"),
+        color=alt.Color("Status", scale=area_chart_colours)
+        )
+    return delays_area
 
 def make_stations_cancellations_pie(df: pd.DataFrame) -> alt.Chart:
     """Produces a pie chart showing cancellation counts per station."""
@@ -49,11 +75,13 @@ def make_stations_cancellations_pie(df: pd.DataFrame) -> alt.Chart:
 
 def make_delay_per_station_bar(df: pd.DataFrame) -> alt.Chart:
     """Makes a pie chart showing delay times per station compared to the mean."""
-    station_cancellation_bar = alt.Chart(df).mark_bar(size=30, color="#d5caca").encode(
-        y=alt.Y('station_name', title="Station"),
-        x=alt.X('delay_time', title="Avg. Delay time (min)"),
+    delay_scale = alt.Scale(domain=df["station_name"].tolist(), range=["#df543b", "#3d3d3d", "#d5caca"])
+    station_cancellation_bar = alt.Chart(df).mark_bar(size=30).encode(
+        y=alt.Y('station_name', title="Station").sort("x"),
+        x=alt.X('delay_time', title="Average delay time by minute."),
         tooltip=[alt.Tooltip('station_name', title="Station Name: "),
-                alt.Tooltip('delay_time', title="Average Delay Time: ")]
+                alt.Tooltip('delay_time', title="Average Delay Time: ")],
+        color=alt.Color("station_name", scale=delay_scale),
     ).properties(height = 300)
     rule = alt.Chart(df).mark_rule(color='#df543b').encode(
     x=alt.X('mean(delay_time):Q'),
@@ -63,11 +91,13 @@ def make_delay_per_station_bar(df: pd.DataFrame) -> alt.Chart:
 
 def make_cancellations_per_station_bar(df: pd.DataFrame) -> alt.Chart:
     """Makes a pie chart showing cancellation counts per station compared to the mean."""
-    station_cancellation_bar = alt.Chart(df).mark_bar(size=30, color="#d5caca").encode(
-        y=alt.Y('Station'),
-        x=alt.X('Count', title="Cancelled trains"),
+    cancellations_scale = alt.Scale(domain=df["Station"].tolist(), range=["#df543b","#d5caca", "#3d3d3d"])
+    station_cancellation_bar = alt.Chart(df).mark_bar(size=30).encode(
+        y=alt.Y('Station').sort("x"),
+        x=alt.X('Count', title="Number of cancelled trains."),
         tooltip=[alt.Tooltip('Station', title="Station Name: "),
-                alt.Tooltip('Count', title="Cancelled trains:")]
+                alt.Tooltip('Count', title="Number of cancelled trains:")],
+        color=alt.Color("Station", scale=cancellations_scale)
     ).properties(height = 300)
     rule = alt.Chart(df).mark_rule(color='#df543b').encode(
     x=alt.X('mean(Count):Q'),
