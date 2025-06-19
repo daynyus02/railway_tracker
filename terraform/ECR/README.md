@@ -20,6 +20,10 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - Hosts the image for the Incidents pipeline lambda to run.
 
 #### ECR Repository:
+- `c17-trains-ecr-reports`
+- Hosts the image for the Reports lambda to run.
+
+#### ECR Repository:
 - `c17-trains-ecr-dashboard`
 - Hosts the image for the dashboard task definition to run.
 

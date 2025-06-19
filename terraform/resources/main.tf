@@ -53,6 +53,17 @@ data "aws_ecr_image" "incidents_pipeline_lambda_image_version" {
   image_tag       = "latest"
 }
 
+# ECR Repository and image for reports lambda
+
+data "aws_ecr_repository" "reports_lambda_image_repo" {
+  name = "c17-trains-ecr-reports"
+}
+
+data "aws_ecr_image" "reports_lambda_image_version" {
+  repository_name = data.aws_ecr_repository.reports_lambda_image_repo.name
+  image_tag       = "latest"
+}
+
 # ECR Repository and image for dashboard task definition
 
 data "aws_ecr_repository" "dashboard_td_image_repo" {
@@ -114,6 +125,14 @@ data "aws_iam_policy" "ecs_service" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+data "aws_iam_policy" "s3_full_access" {
+  arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+data "aws_iam_policy" "sns_full_access" {
+  arn = "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+}
+
 resource "aws_iam_role" "ecs_task_exec_role" {
   name = "c17-trains-ecs-task-exec-role"
 
@@ -144,6 +163,16 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs" {
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecr" {
   role       = aws_iam_role.ecs_task_exec_role.name
   policy_arn = data.aws_iam_policy.ecr_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_s3" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = data.aws_iam_policy.s3_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_sns" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = data.aws_iam_policy.sns_full_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs_role" {
@@ -249,9 +278,9 @@ resource "aws_ecs_service" "dashboard_service" {
 
 # LAMBDA
 
-# Permissions for RTT and incidents pipeline lambda
+# Permissions
 
-data "aws_iam_policy_document" "pipeline_lambda_role_trust_policy_doc" {
+data "aws_iam_policy_document" "lambda_role_trust_policy_doc" {
   statement {
     effect = "Allow"
     principals {
@@ -278,15 +307,53 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
   statement {
     effect = "Allow"
     actions = [
-      "sns:Publish"
+      "sns:Publish",
+      "sns:CreateTopic"
     ]
     resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 }
 
+data "aws_iam_policy_document" "reports_lambda_role_permissions_policy_doc" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["arn:aws:logs:${var.REGION}:${var.ACCOUNT_ID}:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sns:ListSubscriptionsByTopic",
+      "sns:CreateTopic"
+    ]
+    resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ses:SendRawEmail"
+    ]
+    resources = ["arn:aws:ses:${var.REGION}:${var.ACCOUNT_ID}:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:PutObject"
+    ]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.s3_bucket.bucket}/*"]
+  }
+}
+
 resource "aws_iam_role" "pipeline_lambda_role" {
   name               = "c17-trains-pipeline-lambda-role"
-  assume_role_policy = data.aws_iam_policy_document.pipeline_lambda_role_trust_policy_doc.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_role_trust_policy_doc.json
 }
 
 resource "aws_iam_policy" "pipeline_lambda_role_permissions_policy" {
@@ -297,6 +364,21 @@ resource "aws_iam_policy" "pipeline_lambda_role_permissions_policy" {
 resource "aws_iam_role_policy_attachment" "pipeline_lambda_role_policy_connection" {
   role       = aws_iam_role.pipeline_lambda_role.name
   policy_arn = aws_iam_policy.pipeline_lambda_role_permissions_policy.arn
+}
+
+resource "aws_iam_role" "reports_lambda_role" {
+  name               = "c17-trains-reports-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_role_trust_policy_doc.json
+}
+
+resource "aws_iam_policy" "reports_lambda_role_permissions_policy" {
+  name   = "c17-trains-reports-lambda-permissions-policy"
+  policy = data.aws_iam_policy_document.reports_lambda_role_permissions_policy_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "reports_lambda_role_policy_connection" {
+  role       = aws_iam_role.reports_lambda_role.name
+  policy_arn = aws_iam_policy.reports_lambda_role_permissions_policy.arn
 }
 
 # RTT Pipeline Lambda
@@ -352,6 +434,32 @@ resource "aws_lambda_function" "incidents_pipeline_lambda" {
   }
 }
 
+# Reports Lambda
+
+resource "aws_lambda_function" "reports_lambda" {
+  function_name = "c17-trains-lambda-reports"
+  description   = "Generates daily summary reports. Triggered by an EventBridge."
+  role          = aws_iam_role.reports_lambda_role.arn
+  package_type  = "Image"
+  image_uri     = data.aws_ecr_image.reports_lambda_image_version.image_uri
+  timeout       = 240
+  memory_size   = 512
+  depends_on    = [aws_iam_role_policy_attachment.reports_lambda_role_policy_connection]
+
+  environment {
+    variables = {
+      DB_HOST           = var.DB_HOST
+      DB_NAME           = var.DB_NAME
+      DB_USER           = var.DB_USER
+      DB_PASSWORD       = var.DB_PASSWORD
+      DB_PORT           = var.DB_PORT
+      ACCESS_KEY        = var.ACCESS_KEY
+      SECRET_ACCESS_KEY = var.SECRET_KEY
+      S3_BUCKET_NAME    = aws_s3_bucket.s3_bucket.bucket
+    }
+  }
+}
+
 # EVENTBRIDGE
 
 # Scheduler permissions
@@ -385,7 +493,8 @@ resource "aws_iam_role_policy" "eventbridge_invoke_lambda_policy" {
         Effect = "Allow"
         Resource = [
           aws_lambda_function.rtt_pipeline_lambda.arn,
-          aws_lambda_function.incidents_pipeline_lambda.arn
+          aws_lambda_function.incidents_pipeline_lambda.arn,
+          aws_lambda_function.reports_lambda.arn
         ]
       }
     ]
@@ -424,6 +533,24 @@ resource "aws_scheduler_schedule" "incidents_pipeline_lambda_schedule" {
 
   target {
     arn      = aws_lambda_function.incidents_pipeline_lambda.arn
+    role_arn = aws_iam_role.scheduler_role.arn
+  }
+}
+
+# Scheduler for reports lambda
+
+resource "aws_scheduler_schedule" "reports_lambda_schedule" {
+  name       = "c17-trains-schedule-reports"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "cron(0 9 * * ? *)"
+
+  target {
+    arn      = aws_lambda_function.reports_lambda.arn
     role_arn = aws_iam_role.scheduler_role.arn
   }
 }

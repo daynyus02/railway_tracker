@@ -50,13 +50,21 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - `c17-trains-lambda-incidents-pipeline`
 - Runs the incidents ETL pipeline.
 
+#### Lambda:
+- `c17-trains-lambda-reports`
+- Generates daily summary reports.
+
 #### Scheduler:
 - `c17-trains-schedule-rtt-pipeline`
-- Schedules the RTT ETL pipeline lambda to run every 5 minutes.
+- Schedules the RTT ETL pipeline lambda to run every minute.
 
 #### Scheduler:
 - `c17-trains-schedule-incidents-pipeline`
 - Schedules the incidents ETL pipeline lambda to run every 1 hour.
+
+#### Scheduler:
+- `c17-trains-schedule-reports`
+- Schedules the incidents ETL pipeline lambda to run every day at 9am.
 
 ## Provisioning Resources
 
