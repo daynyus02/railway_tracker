@@ -46,6 +46,32 @@ def get_subscriber_emails_from_topic(sns_client: "Client", arn: str) -> list[str
     return [sub["Endpoint"] for sub in subs["Subscriptions"]]
 
 
+def send_report_emails(ses_client: "client", emails: list[str], msg: bytes) -> dict:
+    """Sends summary report emails to specified recipients."""
+
+    for email in emails:
+        try:
+            ses_client.send_raw_email(
+                Source="trainee.stefan.cole@sigmalabs.co.uk",
+                Destinations=[email],
+                RawMessage={"Data": msg.as_string()}
+            )
+            logging.info(
+                "Successfully sent summary report email.")
+        except ClientError as e:
+            logging.error(
+                "Failed to send summary report email.")
+            return {
+                "statusCode": 200,
+                "body": "Summary report emails successfully sent."
+            }
+
+        return {
+            "statusCode": 200,
+            "body": "Summary report emails successfully sent."
+        }
+
+
 def lambda_handler(event, context) -> dict:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
