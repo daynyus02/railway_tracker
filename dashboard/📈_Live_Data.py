@@ -36,7 +36,6 @@ if __name__ == '__main__':
     if not data.empty:
         convert_times_to_datetime(data)
         add_status_column(data)
-        print(data.columns)
 
         st.title("🚆 Railway Tracker")
 

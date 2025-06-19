@@ -19,7 +19,7 @@ def convert_times_to_datetime(df) -> None:
 
 def add_status_column(df) -> None:
     """Adds a column containing service status based on scheduled and actual times."""
-    conditions = [(df['cancelled'] is True),
+    conditions = [(df['cancelled'] == True),
                 (df['scheduled_dep_time'] < df['actual_dep_time'])]
     choices = ['Cancelled', 'Delayed']
     df['Status'] = np.select(conditions, choices, default="On Time")
