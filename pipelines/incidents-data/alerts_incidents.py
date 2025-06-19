@@ -35,20 +35,21 @@ def get_sns_topic_arn(sns_client, origin_crs: str, destination_crs: str) -> str:
     return response["TopicArn"]
 
 
-def publish_incident_alert_to_topic(origin_crs: str, destination_crs: str, summary: str,
-                                    info_link: str, start_time: Timestamp, end_time: Timestamp,
-                                    is_planned: bool, new: bool) -> None:
-    """Publish a new or updated incident alert to a topic."""
-    sns = get_sns_client()
-    topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
-    start_time = start_time.tz_convert("Europe/London").tz_localize(None)
-
+def get_subject(origin_crs: str, destination_crs: str,
+                start_time: Timestamp, new: bool) -> str:
+    """Write the subject for an alert."""
     if new:
         subject = "New "
     else:
         subject = "There has been an update to an "
 
     subject += f"incident on route {origin_crs} to {destination_crs} from {start_time.date()}."
+    return subject
+
+
+def get_message(summary: str, info_link: str, start_time: Timestamp, end_time: Timestamp,
+                is_planned: bool) -> str:
+    """Write the message for an alert."""
     message = f"{summary}.\n\nThe incident will take place from {start_time}"
 
     if is_planned:
@@ -58,6 +59,19 @@ def publish_incident_alert_to_topic(origin_crs: str, destination_crs: str, summa
         message += "."
 
     message += f"\n\nFor more information, please visit {info_link}."
+    return message
+
+
+def publish_incident_alert_to_topic(origin_crs: str, destination_crs: str, summary: str,
+                                    info_link: str, start_time: Timestamp, end_time: Timestamp,
+                                    is_planned: bool, new: bool) -> None:
+    """Publish a new or updated incident alert to a topic."""
+    sns = get_sns_client()
+    topic_arn = get_sns_topic_arn(sns, origin_crs, destination_crs)
+    start_time = start_time.tz_convert("Europe/London").tz_localize(None)
+
+    subject = get_subject(origin_crs, destination_crs, start_time, new)
+    message = get_message(summary, info_link, start_time, end_time, is_planned)
 
     try:
         sns.publish(
