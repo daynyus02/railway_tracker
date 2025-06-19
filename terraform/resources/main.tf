@@ -53,6 +53,17 @@ data "aws_ecr_image" "incidents_pipeline_lambda_image_version" {
   image_tag       = "latest"
 }
 
+# ECR Repository and image for reports lambda
+
+data "aws_ecr_repository" "reports_lambda_image_repo" {
+  name = "c17-trains-ecr-reports"
+}
+
+data "aws_ecr_image" "dashboard_td_image_version" {
+  repository_name = data.aws_ecr_repository.reports_lambda_image_repo.name
+  image_tag       = "latest"
+}
+
 # ECR Repository and image for dashboard task definition
 
 data "aws_ecr_repository" "dashboard_td_image_repo" {
