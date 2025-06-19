@@ -14,7 +14,7 @@ from psycopg2.extras import DictCursor
 from extract_reports import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
 from report import generate_pdf, get_email_message_as_string
-from load import load_new_report, get_s3_client
+from load_reports import load_new_report, get_s3_client
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
