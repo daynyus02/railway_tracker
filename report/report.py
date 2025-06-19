@@ -1,5 +1,7 @@
 """Script for creating PDF summary report."""
 
+from os import environ as ENV
+
 from datetime import datetime as dt
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
@@ -43,8 +45,7 @@ def get_email_message(station_name: str, pdf_bytes: bytes) -> MIMEMultipart:
 
     msg = MIMEMultipart()
     msg['Subject'] = f"{station_name} Summary Report"
-    msg['From'] = "trainee@yahoo.com"
-    msg['To'] = "trainee@yahoo.com"
+    msg['From'] = ENV["SENDER_EMAIL"]
 
     body_text = "Here is your daily train summary report, see the PDF attached."
     msg.attach(MIMEText(body_text, 'plain'))
