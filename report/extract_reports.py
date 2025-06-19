@@ -109,14 +109,3 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
         curs.close()
 
     return result
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    db_conn = get_db_connection()
-
-    stations = ["PAD", "RDG", "DID", "SWI", "CPM", "BTH", "BRI"]
-
-    for station in stations:
-        get_days_data_per_station(station, db_conn)
