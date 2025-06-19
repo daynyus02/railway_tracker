@@ -51,10 +51,10 @@ def lambda_handler(event, context) -> dict:
     load_dotenv()
 
     s3_client = get_s3_client()
-    sns_client = boto3.client("sns", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
-                              aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
-    ses_client = boto3.client("ses", aws_access_key_id=ENV["AWS_ACCESS_KEY_ID"],
-                              aws_secret_access_key=ENV["AWS_SECRET_ACCESS_KEY"])
+    sns_client = boto3.client("sns", aws_access_key_id=ENV["ACCESS_KEY"],
+                              aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
+    ses_client = boto3.client("ses", aws_access_key_id=ENV["ACCESS_KEY"],
+                              aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
 
     with get_db_connection() as conn:
         stations = get_station_name_crs_tuples(conn)
