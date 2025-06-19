@@ -347,7 +347,7 @@ data "aws_iam_policy_document" "reports_lambda_role_permissions_policy_doc" {
     actions = [
       "s3:PutObject"
     ]
-    resources = ["arn:aws:s3:${var.REGION}:${var.ACCOUNT_ID}:${aws_s3_bucket.s3_bucket.bucket}/*"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.s3_bucket.bucket}/*"]
   }
 }
 
