@@ -13,3 +13,6 @@ page_icon="🚆",
 layout="wide"
 )
 pg.run()
+
+if __name__ == '__main__':
+    pass
