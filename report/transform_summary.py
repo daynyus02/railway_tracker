@@ -107,9 +107,11 @@ def get_avg_dep_delay_delayed_trains(data: DataFrame) -> str:
 
     total_delays = sum(delayed_trains['dep_delay'], dt.timedelta())
 
-    avg_delay = total_delays/len(delayed_trains)
+    if len(delayed_trains):
+        avg_delay = total_delays/len(delayed_trains)
+        return convert_timedelta_to_str(avg_delay)
 
-    return convert_timedelta_to_str(avg_delay)
+    return "00:00:00"
 
 
 def get_avg_arr_delay_delayed_trains(data: DataFrame) -> str:
@@ -122,9 +124,11 @@ def get_avg_arr_delay_delayed_trains(data: DataFrame) -> str:
 
     total_delays = sum(delayed_trains['arr_delay'], dt.timedelta())
 
-    avg_delay = total_delays/len(delayed_trains)
+    if len(delayed_trains):
+        avg_delay = total_delays/len(delayed_trains)
+        return convert_timedelta_to_str(avg_delay)
 
-    return convert_timedelta_to_str(avg_delay)
+    return "00:00:00"
 
 
 def get_station_summary(data: DataFrame) -> dict:
