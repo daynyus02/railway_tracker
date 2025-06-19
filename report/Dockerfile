@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY extract_reports.py .
 COPY transform_summary.py .
 COPY load_reports.py .
-COPY main_reports.py .
 COPY report.py .
+COPY main_reports.py .
 
 CMD ["main_reports.lambda_handler"]
