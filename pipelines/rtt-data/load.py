@@ -1,5 +1,6 @@
 """Script for loading data into RDS."""
 
+from datetime import datetime, date
 import logging
 from os import environ as ENV
 
@@ -12,6 +13,7 @@ from psycopg2.extras import execute_batch
 
 from extract import fetch_train_data
 from transform import transform_train_data
+from alerts import send_notification
 
 logging.basicConfig(
     level="DEBUG",
@@ -155,7 +157,7 @@ def map_api_train_stop_data(api_data_train_stop: DataFrame,
         subset=["train_service_id", "station_id"], inplace=True)
 
     api_data_train_stop.drop(
-        columns=["service_uid", "station_name"], inplace=True)
+        columns=["service_uid"], inplace=True)
 
     api_data_train_stop["train_service_id"] = api_data_train_stop["train_service_id"].astype(
         int)
@@ -166,7 +168,8 @@ def map_api_train_stop_data(api_data_train_stop: DataFrame,
         "train_service_id", "station_id",
         "scheduled_arr_time", "actual_arr_time",
         "scheduled_dep_time", "actual_dep_time",
-        "platform", "platform_changed"
+        "platform", "platform_changed", "station_name",
+        "origin_name", "destination_name"
     ]]
 
     return api_data_train_stop
@@ -340,7 +343,7 @@ def update_route(api_data: DataFrame, conn: Connection):
 def update_train_service(api_data: DataFrame, conn: Connection):
     """Updates database's train_service table."""
     api_data_train_service = api_data[[
-        "service_uid", "train_identity", "service_date",
+        "service_uid", "train_identity",  "service_date",
         "origin_name", "destination_name", "operator_name"
     ]].drop_duplicates()
 
@@ -408,10 +411,19 @@ def update_train_stop(api_data: DataFrame, conn: Connection):
     api_data_train_stop = api_data[[
         "service_uid", "station_name", "scheduled_arr_time",
         "actual_arr_time", "scheduled_dep_time", "actual_dep_time",
-        "platform", "platform_changed"
+        "platform", "platform_changed", "origin_name", "destination_name"
     ]].drop_duplicates()
 
     with conn.cursor() as cur:
+        cur.execute("""SELECT 
+                        train_service_id,
+                        station_id,
+                        scheduled_dep_time,
+                        actual_dep_time
+                    FROM train_stop;""")
+        rows = cur.fetchall()
+        database_data_train_stop_departures = DataFrame(rows)
+
         cur.execute("SELECT train_service_id, service_uid FROM train_service;")
         rows = cur.fetchall()
         database_data_train_services = DataFrame(rows)
@@ -423,6 +435,44 @@ def update_train_stop(api_data: DataFrame, conn: Connection):
     api_data_train_stop = map_api_train_stop_data(api_data_train_stop,
                                                   database_data_train_services,
                                                   database_data_stations)
+
+    intersecting_data = api_data_train_stop.merge(
+        database_data_train_stop_departures,
+        on=["train_service_id", "station_id"],
+        suffixes=("_api", "_db")
+    )
+
+    intersecting_data["delay_new"] = intersecting_data.apply(
+        lambda row: (
+            datetime.combine(date.today(), row["actual_dep_time_api"]) -
+            datetime.combine(date.today(), row["scheduled_dep_time_api"])
+        ).total_seconds() // 60,
+        axis=1
+    )
+
+    intersecting_data["delay_old"] = intersecting_data.apply(
+        lambda row: (
+            datetime.combine(date.today(), row["actual_dep_time_db"]) -
+            datetime.combine(date.today(), row["scheduled_dep_time_db"])
+        ).total_seconds() // 60,
+        axis=1
+    )
+
+    new_delays = intersecting_data[
+        (intersecting_data["delay_new"] > 0) & (
+            intersecting_data["delay_old"].isna() |
+            (intersecting_data["delay_new"] > intersecting_data["delay_old"])
+        )
+    ]
+
+    if not new_delays.empty:
+        send_notification(new_delays)
+    else:
+        logger.info("No new or increased delays to notify.")
+
+    api_data_train_stop = api_data_train_stop.drop(
+        columns=["station_name", "origin_name", "destination_name"])
+
     try:
         with conn.cursor() as cur:
             execute_batch(cur, """
