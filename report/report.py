@@ -12,7 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from pandas import DataFrame
 from dotenv import load_dotenv
 
-from report.extract_reports import get_days_data_per_station, get_db_connection, get_station_name_from_crs
+from extract_reports import get_days_data_per_station, get_db_connection, get_station_name_from_crs
 from transform_summary import get_station_summary
 
 
