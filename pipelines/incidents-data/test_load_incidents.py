@@ -74,7 +74,7 @@ def test_route_caching(sample_extracted_data_pad_bri, fake_conn):
             patch("load_incidents.get_station_id_map", return_value={
                 "London Paddington": 1,
                 "Bristol Temple Meads": 2}), \
-            patch("load_incidents.publish_new_incident_to_topic", return_value=None):
+            patch("load_incidents.publish_incident_alert_to_topic", return_value=None):
 
         fake_cursor = fake_conn.cursor.return_value.__enter__.return_value
         fake_cursor.fetchone.return_value = [None]
@@ -99,7 +99,7 @@ def test_insert_incident_commits_once(fake_conn, sample_extracted_data_pad_bri):
             patch("load_incidents.get_station_id_map", return_value={
                 "London Paddington": 1,
                 "Bristol Temple Meads": 2}), \
-            patch("load_incidents.publish_new_incident_to_topic", return_value=None):
+            patch("load_incidents.publish_incident_alert_to_topic", return_value=None):
 
         fake_cursor = fake_conn.cursor.return_value.__enter__.return_value
         fake_cursor.fetchone.return_value = [None]
