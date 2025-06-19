@@ -251,6 +251,10 @@ resource "aws_ecs_task_definition" "dashboard_td" {
         {
           name  = "REGION"
           value = var.REGION
+        },
+        {
+          name  = "BUCKET_NAME"
+          value = aws_s3_bucket.s3_bucket.bucket
         }
       ]
     }
