@@ -61,3 +61,5 @@ if pdf_keys:
 else:
     st.write("No PDF files found.")
 
+if __name__ == '__main__':
+    pass

@@ -66,3 +66,6 @@ def get_avg_delay_per_station(df: pd.DataFrame) -> pd.DataFrame:
 def get_unique_stations(df:pd.DataFrame) -> list[str]:
     """Retrieves all unique stations from the dataframe"""
     return df['station_name'].drop_duplicates().sort_values(ascending=True).tolist()
+
+if __name__ == '__main__':
+    pass

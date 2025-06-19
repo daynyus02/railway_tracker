@@ -121,3 +121,5 @@ if __name__ == '__main__':
         st.markdown("### Interruptions per Operator:")
         st.altair_chart(interruptions_chart, use_container_width=True)
 
+if __name__ == '__main__':
+    pass

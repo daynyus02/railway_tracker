@@ -102,3 +102,6 @@ with st.form("Reports:"):
                 Endpoint=email,
                 ReturnSubscriptionArn=True
             )
+
+if __name__ == '__main__':
+    pass

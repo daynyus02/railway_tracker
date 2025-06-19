@@ -107,3 +107,6 @@ def get_route_data(df:pd.DataFrame) -> pd.DataFrame:
         'avg_delay_time': 'Average Delay (min)'
     }, inplace=True)
     return routes
+
+if __name__ == '__main__':
+    pass

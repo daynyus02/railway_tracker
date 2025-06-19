@@ -64,3 +64,6 @@ delays_per_station = get_avg_delay_per_station(delays_per_station)
 delays_per_station_bar = make_cancellations_per_station_bar(delays_per_station)
 st.subheader("Average delay per station: ")
 st.altair_chart(delays_per_station_bar)
+
+if __name__ == '__main__':
+    pass

@@ -60,3 +60,6 @@ def make_cancellations_per_station_bar(df: pd.DataFrame) -> alt.Chart:
     tooltip=[alt.Tooltip('mean(delay_time):Q', title="Mean delay")]
     )
     return station_cancellation_bar + rule
+
+if __name__ == '__main__':
+    pass

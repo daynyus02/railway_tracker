@@ -79,74 +79,6 @@ def make_live_train_table(df: pd.DataFrame, cancelled: bool, event_type: str = "
     styled_trains = live_trains.style.apply(highlight_interruption, axis=1)
     return styled_trains
 
-# def make_live_arrival_train_table(df: pd.DataFrame, cancelled: bool):
-#     """Returns a table of live train arrivals for a df."""
-#     live_trains = df[[
-#         "service_uid",
-#         "station_name",
-#         "origin_name",
-#         "actual_arr_time",
-#         "Status",
-#         "cancel_reason",
-#         "platform",
-#         "operator_name"
-#     ]].copy()
-
-#     live_trains.rename(columns={
-#         "service_uid": "Service ID",
-#         "station_name": "Arrival Station",
-#         "origin_name": "Origin",
-#         "platform": "Platform",
-#         "operator_name": "Operator",
-#         "cancel_reason": "Reason"
-#     }, inplace=True)
-#     if cancelled:
-#         live_trains["Reason"] = live_trains["Reason"].apply(lambda x: x.capitalize())
-#     if not cancelled:
-#         live_trains = live_trains.drop(columns=["Reason"])
-#     live_trains = live_trains.dropna(subset=['actual_arr_time'])
-#     live_trains['Arrival Time'] = live_trains['actual_arr_time'].dt.time
-#     live_trains = live_trains.drop(columns=["actual_arr_time"])
-#     live_trains = live_trains.fillna('-')
-#     live_trains = live_trains.sort_values(by='Arrival Time')
-#     styled_trains = live_trains.style.apply(highlight_interruption, axis=1)
-#     return styled_trains
-
-# def make_live_departure_train_table(df: pd.DataFrame, cancelled: bool):
-#     """Returns a table of live train departures for a df."""
-#     live_trains = df[[
-#         "service_uid",
-#         "station_name",
-#         "destination_name",
-#         "actual_dep_time",
-#         "Status",
-#         "cancel_reason",
-#         "platform",
-#         "operator_name"
-#     ]].copy()
-
-#     live_trains.rename(columns={
-#         "service_uid": "Service ID",
-#         "station_name": "Arrival Station",
-#         "destination_name": "Destination",
-#         "platform": "Platform",
-#         "operator_name": "Operator",
-#         "cancel_reason": "Reason"
-#     }, inplace=True)
-#     if cancelled:
-#         live_trains["Reason"] = live_trains["Reason"].apply(lambda x: x.capitalize())
-#     if not cancelled:
-#         live_trains = live_trains.drop(columns=["Reason"])
-#     live_trains = live_trains.dropna(subset=['actual_dep_time'])
-#     live_trains['Departure Time'] = live_trains['actual_dep_time'].dt.time
-#     live_trains = live_trains.drop(columns=["actual_dep_time"])
-
-#     live_trains = live_trains.fillna('-')
-#     live_trains = live_trains.sort_values(by='Departure Time')
-#     styled_trains = live_trains.style.apply(highlight_interruption, axis=1)
-#     return styled_trains
-
-
 def make_operator_cancellations_pie(df: pd.DataFrame) -> pd.DataFrame:
     """Creates a pie chart of cancellations per operator."""
     operator_colour_scale = alt.Scale(range=['#0A493E','#6950a1', '#CA123F'])
@@ -171,3 +103,6 @@ def make_interruptions_bar(df: pd.DataFrame) -> alt.Chart:
                 alt.Tooltip('percentage_of_trains', title="% of trains")]
     )
     return interruptions_chart
+
+if __name__ == '__main__':
+    pass
