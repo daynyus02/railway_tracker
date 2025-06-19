@@ -26,7 +26,8 @@ def get_db_connection() -> Connection:
             password=ENV["DB_PASSWORD"],
             host=ENV["DB_HOST"],
             port=ENV["DB_PORT"],
-            database=ENV["DB_NAME"]
+            database=ENV["DB_NAME"],
+            cursor_factory=RealDictCursor
         )
         logging.info("Successfully retrieved database connection.")
     except OperationalError:
@@ -39,7 +40,7 @@ def get_db_connection() -> Connection:
 def get_station_id_from_crs(station_crs: str, conn: Connection) -> int:
     """Gets corresponding station ID from database for a given station CRS code."""
 
-    with conn.cursor(cursor_factory=RealDictCursor) as curs:
+    with conn.cursor() as curs:
 
         curs.execute("SELECT * FROM station WHERE station_crs = %s",
                      (station_crs,))
@@ -51,6 +52,26 @@ def get_station_id_from_crs(station_crs: str, conn: Connection) -> int:
             result = dict(result)["station_id"]
         else:
             logging.warning("No station ID retrieved for %s", station_crs)
+        curs.close()
+
+    return result
+
+
+def get_station_name_from_crs(station_crs: str, conn: Connection) -> int:
+    """Gets corresponding station name from database for a given station CRS code."""
+
+    with conn.cursor() as curs:
+
+        curs.execute("SELECT * FROM station WHERE station_crs = %s",
+                     (station_crs,))
+        result = curs.fetchone()
+
+        if result:
+            logging.info(
+                "Successfully retrieved station name for %s", station_crs)
+            result = dict(result)["station_name"]
+        else:
+            logging.warning("No station name retrieved for %s", station_crs)
         curs.close()
 
     return result
@@ -73,7 +94,7 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
             AND service_date = current_date - 1;
             """
 
-    with conn.cursor(cursor_factory=RealDictCursor) as curs:
+    with conn.cursor() as curs:
 
         curs.execute(query, (station_id,))
         result = curs.fetchall()

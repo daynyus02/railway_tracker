@@ -3,13 +3,13 @@
 from unittest.mock import MagicMock, patch
 from psycopg2.extras import RealDictRow
 
-from extract_report_data import (get_db_connection, get_days_data_per_station,
-                                 get_station_id_from_crs)
+from extract_reports import (get_db_connection, get_days_data_per_station,
+                             get_station_id_from_crs)
 
 
 def test_get_db_connection_called_once():
     """Tests that connect gets called correctly in get_db_connection function."""
-    with patch("extract_report_data.connect") as mock_connect, \
+    with patch("extract_reports.connect") as mock_connect, \
             patch.dict("os.environ", {
                 "DB_USER": "USER",
                 "DB_PASSWORD": "PASSWORD",
@@ -45,7 +45,7 @@ def test_get_station_id_from_crs_returns_none_crs_not_present():
     assert not get_station_id_from_crs("PAD", mock_conn)
 
 
-@patch("extract_report_data.get_station_id_from_crs")
+@patch("extract_reports.get_station_id_from_crs")
 def test_days_data_per_station_returns_correct_data(fake_station_id, test_valid_past_day_data):
     """Tests that get_station_id function returns None when CRS 
     does not correspond to a station in database."""
@@ -60,7 +60,7 @@ def test_days_data_per_station_returns_correct_data(fake_station_id, test_valid_
         "PAD", mock_conn) == test_valid_past_day_data
 
 
-@patch("extract_report_data.get_station_id_from_crs")
+@patch("extract_reports.get_station_id_from_crs")
 def test_days_data_per_station_returns_false_value_no_results(fake_station_id):
     """Tests that get_station_id function returns None when CRS 
     does not correspond to a station in database."""
