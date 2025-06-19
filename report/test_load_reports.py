@@ -1,7 +1,7 @@
 """Testing file for loading reports to S3."""
 
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import logging
 
 from botocore.exceptions import ClientError
@@ -74,3 +74,7 @@ def test_report_already_exists_file_raises_client_error(mock_env, caplog):
     assert caplog.records[0].message == (
         "Error accessing S3 bucket to check for existing file."
     )
+
+
+@patch("load.report_already_exists", return_value=True)
+def test_load_new_report_correct_logs
