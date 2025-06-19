@@ -92,37 +92,6 @@ def lambda_handler(event, context) -> dict:
                 transformed_data = get_station_summary(DataFrame(data))
 
                 report = generate_pdf(station[0], transformed_data)
-                load_new_report(s3_client, station[0], report)
-                msg = get_email_message_as_string(station[0], report)
-
-                topic_arn = get_sns_topic_arn_by_station(
-                    sns_client, station[1])
-                emails = get_subscriber_emails_from_topic(
-                    sns_client, topic_arn)
-
-                if emails:
-                    sent_status = send_report_emails(ses_client, emails, msg)
-                    logging.info("%s", sent_status)
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    s3_client = get_s3_client()
-    sns_client = boto3.client("sns", aws_access_key_id=ENV["ACCESS_KEY"],
-                              aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
-    ses_client = boto3.client("ses", aws_access_key_id=ENV["ACCESS_KEY"],
-                              aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
-
-    with get_db_connection() as conn:
-        stations = get_station_name_crs_tuples(conn)
-
-        for station in stations:
-            data = get_days_data_per_station(station[1], conn)
-            if data:
-                transformed_data = get_station_summary(DataFrame(data))
-
-                report = generate_pdf(station[0], transformed_data)
                 load_new_report(s3_client, station[0], transformed_data)
                 msg = get_email_message_as_string(station[0], report)
 
