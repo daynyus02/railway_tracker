@@ -44,7 +44,7 @@ CREATE TABLE train_service (
 );
 
 CREATE TABLE train_stop (
-    train_stop_id SMALLINT GENERATED ALWAYS AS IDENTITY,
+    train_stop_id BIGINT GENERATED ALWAYS AS IDENTITY,
     train_service_id INT NOT NULL,
     station_id SMALLINT NOT NULL,
     scheduled_arr_time TIME,
@@ -55,7 +55,7 @@ CREATE TABLE train_stop (
     platform_changed BOOLEAN NOT NULL,
     PRIMARY KEY (train_stop_id),
     FOREIGN KEY (station_id) REFERENCES station(station_id),
-    FOREIGN KEY (train_service_id) REFERENCES train_service(train_service_id)
+    FOREIGN KEY (train_service_id) REFERENCES train_service(train_service_id),
     UNIQUE (train_service_id, station_id)
 );
 

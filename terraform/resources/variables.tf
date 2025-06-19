@@ -69,3 +69,7 @@ variable "STATIONS" {
 variable "INCIDENTS_URL" {
   type = string
 }
+
+variable "TOPIC_PREFIX" {
+  type = string
+}
