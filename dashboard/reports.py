@@ -57,7 +57,7 @@ if pdf_keys:
         file_name = key.split('/')[-1]
         url = generate_url(ENV["BUCKET_NAME"], key, s3_client)
         if url:
-            st.markdown(f"**{i}.** [📄 {file_name}]({url})", unsafe_allow_html=True)
+            st.link_button(f"{i}. 📄 {file_name}", url)
 else:
     st.write("No PDF files found.")
 
