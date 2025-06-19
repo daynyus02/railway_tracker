@@ -272,7 +272,7 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = ["*"]
+    resources = ["arn:aws:logs:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 
   statement {
@@ -280,7 +280,7 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
     actions = [
       "sns:Publish"
     ]
-    resources = ["*"]
+    resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 }
 
@@ -345,6 +345,9 @@ resource "aws_lambda_function" "incidents_pipeline_lambda" {
       DB_PASSWORD   = var.DB_PASSWORD
       DB_PORT       = var.DB_PORT
       INCIDENTS_URL = var.INCIDENTS_URL
+      REGION        = var.REGION
+      ACCESS_KEY    = var.ACCESS_KEY
+      SECRET_KEY    = var.SECRET_KEY
     }
   }
 }
