@@ -1,3 +1,4 @@
+"""The dashboard configuration."""
 import streamlit as st
 
 live_data = st.Page("live_data.py", title="Live Data", icon="📈")
