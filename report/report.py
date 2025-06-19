@@ -28,7 +28,7 @@ def generate_pdf(station_name: str, data: dict) -> bytes:
 
     pdf_elements = []
     pdf_elements.append(
-        Paragraph(f"OnTrack Summary Report, {dt.today().strftime("%d/%m/%Y")}, {station_name}", styles['Title']))
+        Paragraph(f"OnTrack {station_name} Summary Report, {dt.today().strftime("%d-%m-%Y")}", styles['Title']))
     for key, value in data.items():
         pdf_elements.append(Paragraph(f"{key}: {value}", styles['BodyText']))
 
@@ -51,7 +51,7 @@ def get_email_message_as_string(station_name: str, pdf_bytes: bytes) -> str:
 
     attachment = MIMEApplication(pdf_bytes)
     attachment.add_header('Content-Disposition', 'attachment',
-                          filename=f"{station_name} summary report {dt.today().strftime("%d/%m/%Y")}")
+                          filename=f"{station_name.lower().replace(" ", "_")}_station_summary_report_{dt.today().strftime("%d-%m-%Y")}.pdf")
     msg.attach(attachment)
 
     return msg
@@ -63,4 +63,5 @@ if __name__ == "__main__":
     with get_db_connection() as db_conn:
         station_data = DataFrame(get_days_data_per_station("DID", db_conn))
         summary = get_station_summary(station_data)
-        generate_pdf("Didcot Parkway", summary)
+        station_name = get_station_name_from_crs("DID", db_conn)
+        generate_pdf(station_name, summary)
