@@ -100,24 +100,5 @@ def lambda_handler(event, context) -> dict:
                     sns_client, topic_arn)
 
                 if emails:
-                    for email in emails:
-                        try:
-                            ses_client.send_raw_email(
-                                Source="trainee.stefan.cole@sigmalabs.co.uk",
-                                Destinations=[email],
-                                RawMessage={"Data": msg.as_string()}
-                            )
-                            logging.info(
-                                "Successfully sent summary report email.")
-                        except ClientError as e:
-                            logging.error(
-                                "Failed to send summary report email.")
-                            return {
-                                "statusCode": 500,
-                                "body": f"Failure to send summary report emails: {str(e)}"
-                            }
-
-                        return {
-                            "statusCode": 200,
-                            "body": "Summary report emails successfully sent."
-                        }
+                    sent_status = send_report_emails(ses_client, emails, msg)
+                    logging.info("%s", sent_status)
