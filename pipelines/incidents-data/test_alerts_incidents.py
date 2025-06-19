@@ -31,7 +31,8 @@ def test_get_subject_new():
 def test_get_subject_update():
     """Test a subject for an updated incident is created as expected."""
     start_time = Timestamp("2025-07-20T00:00:00Z")
-    expected_subject = "There has been an update to an incident on route PAD to BRI from 2025-07-20."
+    expected_subject = "There has been an update to an incident on route PAD to BRI from " \
+        "2025-07-20."
     assert get_subject("PAD", "BRI", start_time, False) == expected_subject
 
 
