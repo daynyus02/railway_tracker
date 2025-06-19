@@ -1,17 +1,15 @@
+# pylint: disable=invalid-name, non-ascii-file-name, import-error
 """Dashboard for historical data."""
 from os import environ as ENV
 from dotenv import load_dotenv
 import streamlit as st
 import psycopg2
-import pandas as pd
-import boto3
-import numpy as np
 
 
 from utils.live_data_dataframes import convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator
 from utils.live_data_visualisations import make_operator_cancellations_pie
 from utils.historical_data_visualisations import make_delays_heatmap, make_stations_cancellations_pie, make_cancellations_per_station_bar
-from utils.historical_data_dataframes import get_unique_routes, get_cancellation_data_per_station, get_avg_delay_per_station, station_to_crs, fetch_data
+from utils.historical_data_dataframes import get_cancellation_data_per_station, get_avg_delay_per_station,fetch_data
 
 
 st.set_page_config(
@@ -49,7 +47,7 @@ st.subheader("Delay peak times:")
 if data.empty:
     st.warning("No Data.")
 else:
-    st.altair_chart(heatmap)    
+    st.altair_chart(heatmap)
 ######### Cancellations pie charts #########
 col1,col2 = st.columns(2)
 with col1:
@@ -70,4 +68,3 @@ delays_per_station = get_avg_delay_per_station(delays_per_station)
 delays_per_station_bar = make_cancellations_per_station_bar(delays_per_station)
 st.subheader("Average delay per station: ")
 st.altair_chart(delays_per_station_bar)
-   

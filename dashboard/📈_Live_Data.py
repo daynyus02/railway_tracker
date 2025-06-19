@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import streamlit as st
 import psycopg2
 
-from utils.live_data_visualisations import make_operator_cancellations_pie, make_interruptions_bar, make_live_arrival_train_table, make_live_departure_train_table
+from utils.live_data_visualisations import make_operator_cancellations_pie, make_interruptions_bar, make_live_train_table
 from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator, get_route_data, get_interruption_data
 
 def get_connection():
@@ -73,7 +73,6 @@ if __name__ == '__main__':
         format="HH:mm"
         )
         start, end = selected_time_range
-        print(filtered_data.dtypes)
         filtered_data = filtered_data[
         (filtered_data['scheduled_dep_time'].dt.time >= start) & (filtered_data['scheduled_dep_time'].dt.time <= end)]
         interruption_filter = st.sidebar.radio("Filter Interruption", ["All", "Delayed", "Cancelled"])
@@ -82,16 +81,16 @@ if __name__ == '__main__':
 
 ######### Live train departure table #########
         if interruption_filter == "Cancelled":
-            styled_arrivals = make_live_arrival_train_table(filtered_data, True)
+            styled_arrivals = make_live_train_table(filtered_data, True, 'arrival')
         else:
-            styled_arrivals = make_live_arrival_train_table(filtered_data, False)
+            styled_arrivals = make_live_train_table(filtered_data, False, 'arrival')
         st.subheader("Live Arrivals 🚇:")
         st.dataframe(styled_arrivals, hide_index=True, height=210)
 
         if interruption_filter == "Cancelled":
-            styled_departures = make_live_departure_train_table(filtered_data, True)
+            styled_departures = make_live_train_table(filtered_data, True, 'departure')
         else:
-            styled_departures = make_live_departure_train_table(filtered_data, False)
+            styled_departures = make_live_train_table(filtered_data, False, 'departure')
         st.subheader("Live Departures 🚇:")
         st.dataframe(styled_departures, hide_index=True, height=210)
 
@@ -133,15 +132,8 @@ if __name__ == '__main__':
             st.markdown(f"#### Total Cancellations: {filtered_data[filtered_data["Status"] == "Cancelled"]["service_uid"].nunique()}")
 
 ######### Cancelled trains pie chart and interruptions bar chart #########
-        cancelled = get_cancelled_data_per_operator(data)
-        cancelled_pie_chart = make_operator_cancellations_pie(cancelled)
         interruptions = get_interruption_data(data)
         interruptions_chart = make_interruptions_bar(interruptions)
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### Total Cancellations per Operator: ")
-            st.altair_chart(cancelled_pie_chart)
-        with col2:
-            st.markdown("### Interruptions per Operator:")
-            st.altair_chart(interruptions_chart)
+        st.markdown("### Interruptions per Operator:")
+        st.altair_chart(interruptions_chart, use_container_width=True)
 

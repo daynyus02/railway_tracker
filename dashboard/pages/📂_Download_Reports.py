@@ -1,4 +1,7 @@
+# pylint: disable=invalid-name, non-ascii-file-name
+"""A page to download daily reports."""
 from os import environ as ENV
+import botocore.exceptions
 
 import boto3
 import streamlit as st
@@ -18,41 +21,41 @@ def list_pdfs(bucket_name, client):
         ]
         return pdf_files
 
-    except Exception:
-        st.error("AWS credentials not found.")
+    except botocore.exceptions.ClientError as e:
+        st.error(f"AWS Client Error: {e.response['Error']['Message']}")
+    except Exception as e:
+        st.error(f"Unexpected error: {str(e)}")
         return []
 
-def generate_presigned_url(bucket_name, key, client, expiration=3600):
+def generate_url(bucket_name, object_key, client, expiration=3600):
     """Generate a pre-signed URL for the given S3 object."""
     try:
-        url = client.generate_presigned_url(
+        report_url = client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': bucket_name, 'Key': key},
+            Params={'Bucket': bucket_name, 'Key': object_key},
             ExpiresIn=expiration
         )
-        return url
+        return report_url
     except Exception as e:
         st.error(f"Error generating URL: {e}")
         return None
 
 load_dotenv()
-s3_client = boto3.client('s3', 
+s3_client = boto3.client('s3',
                             region_name=ENV["REGION"],
                             aws_access_key_id=ENV["ACCESS_KEY"],
                             aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
 
-
-BUCKET_NAME = 'c17-trains-reports'
-
 st.title("📂 Download PDF Reports:")
 
-pdf_keys = list_pdfs(BUCKET_NAME, s3_client)
+pdf_keys = list_pdfs(ENV["BUCKET_NAME"], s3_client)
 
 if pdf_keys:
-    for i in range(len(pdf_keys)):
-        file_name = pdf_keys[i].split('/')[-1]
-        url = generate_presigned_url(BUCKET_NAME, pdf_keys[i], s3_client)
+    for i, key in enumerate(pdf_keys, start=1):
+        file_name = key.split('/')[-1]
+        url = generate_url(ENV["BUCKET_NAME"], key, s3_client)
         if url:
-            st.markdown(f"**{i+1}.** [📄 {file_name}]({url})", unsafe_allow_html=True)
+            st.markdown(f"**{i}.** [📄 {file_name}]({url})", unsafe_allow_html=True)
 else:
     st.write("No PDF files found.")
+
