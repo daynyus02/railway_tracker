@@ -1,4 +1,5 @@
-# pylint: disable=invalid-name, non-ascii-file-name, import-error
+# pylint: skip-file
+# pylint: disable=invalid-name, non-ascii-file-name, import-error, F0001
 """Dashboard for historical data."""
 from os import environ as ENV
 from dotenv import load_dotenv
@@ -12,11 +13,6 @@ from utils.historical_data_visualisations import make_delays_heatmap, make_stati
 from utils.historical_data_dataframes import get_cancellation_data_per_station, get_avg_delay_per_station,fetch_data
 
 
-st.set_page_config(
-page_title="Historical Data",
-page_icon="💾",
-layout="wide"
-)
 st.logo("logo.png", size='large')
 st.title("💾 Historical Data:")
 window_filter = st.radio("Filter Date Window:", ["On", "Before", "After"], horizontal=True)

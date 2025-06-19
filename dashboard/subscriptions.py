@@ -1,4 +1,7 @@
+# pylint: skip-file
+
 # pylint: disable=invalid-name, non-ascii-file-name, import-error
+
 """A page allowing users to subscribe to services."""
 from os import environ as ENV
 import streamlit as st

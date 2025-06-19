@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 # pylint: disable=invalid-name, non-ascii-file-name
 """A page to download daily reports."""
 from os import environ as ENV

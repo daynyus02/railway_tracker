@@ -1,11 +1,14 @@
 """Data manipulation functions for the live dashboard."""
+from os import environ as ENV
 import pandas as pd
 import numpy as np
 import streamlit as st
 import psycopg2
+from dotenv import load_dotenv
 
 def get_connection():
     """Returns a psycopg2 connection to the RDS database."""
+    load_dotenv()
     connection = psycopg2.connect(host=ENV['DB_HOST'],
                             port=ENV['DB_PORT'],
                             dbname=ENV['DB_NAME'],

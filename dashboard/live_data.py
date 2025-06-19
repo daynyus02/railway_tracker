@@ -11,11 +11,6 @@ if __name__ == '__main__':
     load_dotenv()
 
 ######### Dashboard Setup #########
-    st.set_page_config(
-    page_title="Railway Tracker",
-    page_icon="🚆",
-    layout="wide"
-    )
     st.logo("logo.png", size='large')
     ### Fetching Data ###
     QUERY = """SELECT *
