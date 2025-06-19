@@ -47,7 +47,7 @@ def get_subscriber_emails_from_topic(sns_client: "Client", arn: str) -> list[str
     return [sub["Endpoint"] for sub in subs["Subscriptions"]]
 
 
-def send_report_emails(ses_client: "client", emails: list[str], msg: bytes) -> dict:
+def send_report_emails(ses_client: "Client", emails: list[str], msg: bytes) -> dict:
     """Sends summary report emails to specified recipients."""
 
     for email in emails:
@@ -63,8 +63,8 @@ def send_report_emails(ses_client: "client", emails: list[str], msg: bytes) -> d
             logging.error(
                 "Failed to send summary report email.")
             return {
-                "statusCode": 200,
-                "body": "Summary report emails successfully sent."
+                "statusCode": 500,
+                "body": f"Error sending summary report email: {str(e)}."
             }
 
         return {
