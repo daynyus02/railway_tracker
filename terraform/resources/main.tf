@@ -59,7 +59,7 @@ data "aws_ecr_repository" "reports_lambda_image_repo" {
   name = "c17-trains-ecr-reports"
 }
 
-data "aws_ecr_image" "dashboard_td_image_version" {
+data "aws_ecr_image" "reports_lambda_image_version" {
   repository_name = data.aws_ecr_repository.reports_lambda_image_repo.name
   image_tag       = "latest"
 }
@@ -125,6 +125,10 @@ data "aws_iam_policy" "ecs_service" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+data "aws_iam_policy" "s3_full_access" {
+  arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
 resource "aws_iam_role" "ecs_task_exec_role" {
   name = "c17-trains-ecs-task-exec-role"
 
@@ -155,6 +159,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs" {
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecr" {
   role       = aws_iam_role.ecs_task_exec_role.name
   policy_arn = data.aws_iam_policy.ecr_full_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_s3" {
+  role       = aws_iam_role.ecs_task_exec_role.name
+  policy_arn = data.aws_iam_policy.s3_full_access.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_ecs_role" {
@@ -262,7 +271,7 @@ resource "aws_ecs_service" "dashboard_service" {
 
 # Permissions for RTT and incidents pipeline lambda
 
-data "aws_iam_policy_document" "pipeline_lambda_role_trust_policy_doc" {
+data "aws_iam_policy_document" "lambda_role_trust_policy_doc" {
   statement {
     effect = "Allow"
     principals {
@@ -289,15 +298,43 @@ data "aws_iam_policy_document" "pipeline_lambda_role_permissions_policy_doc" {
   statement {
     effect = "Allow"
     actions = [
-      "sns:Publish"
+      "sns:*"
     ]
     resources = ["arn:aws:sns:${var.REGION}:${var.ACCOUNT_ID}:*"]
   }
 }
 
+data "aws_iam_policy_document" "reports_lambda_role_permissions_policy_doc" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["arn:aws:logs:${var.REGION}:${var.ACCOUNT_ID}:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ses:*"
+    ]
+    resources = ["arn:aws:ses:${var.REGION}:${var.ACCOUNT_ID}:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:PutObject"
+    ]
+    resources = ["arn:aws:s3:${var.REGION}:${var.ACCOUNT_ID}:${aws_s3_bucket.s3_bucket.bucket}/*"]
+  }
+}
+
 resource "aws_iam_role" "pipeline_lambda_role" {
   name               = "c17-trains-pipeline-lambda-role"
-  assume_role_policy = data.aws_iam_policy_document.pipeline_lambda_role_trust_policy_doc.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_role_trust_policy_doc.json
 }
 
 resource "aws_iam_policy" "pipeline_lambda_role_permissions_policy" {
