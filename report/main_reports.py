@@ -10,7 +10,7 @@ from pandas import DataFrame
 from botocore.exceptions import ClientError
 from psycopg2.extensions import connection as Connection
 
-from extract_report_data import get_db_connection, get_days_data_per_station
+from extract_reports import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
 from report import generate_pdf, get_email_message_as_string
 from load import load_new_report, get_s3_client
