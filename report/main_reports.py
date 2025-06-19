@@ -9,6 +9,7 @@ import boto3
 from pandas import DataFrame
 from botocore.exceptions import ClientError
 from psycopg2.extensions import connection as Connection
+from psycopg2.extras import DictCursor
 
 from extract_reports import get_db_connection, get_days_data_per_station
 from transform_summary import get_station_summary
@@ -22,7 +23,7 @@ logger.setLevel("DEBUG")
 def get_station_name_crs_tuples(conn: Connection) -> list[str]:
     """Retrieves name and crs for each station in the database as list of tuples."""
 
-    with conn.cursor() as curs:
+    with conn.cursor(cursor_factory=DictCursor) as curs:
         curs.execute("SELECT station_name, station_crs FROM station;")
         station_names = curs.fetchall()
 
@@ -122,7 +123,7 @@ if __name__ == "__main__":
                 transformed_data = get_station_summary(DataFrame(data))
 
                 report = generate_pdf(station[0], transformed_data)
-                load_new_report(s3_client, station[0], report)
+                load_new_report(s3_client, station[0], transformed_data)
                 msg = get_email_message_as_string(station[0], report)
 
                 topic_arn = get_sns_topic_arn_by_station(
