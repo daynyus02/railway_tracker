@@ -86,6 +86,15 @@ def lambda_handler(event, context) -> dict:
                         except ClientError as e:
                             logging.error(
                                 "Failed to send summary report email.")
+                            return {
+                                "statusCode": 500,
+                                "body": f"Failure to send summary report emails: {str(e)}"
+                            }
+
+                        return {
+                            "statusCode": 200,
+                            "body": "Summary report emails successfully sent."
+                        }
 
 
 if __name__ == "__main__":
