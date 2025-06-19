@@ -5,13 +5,12 @@ from dotenv import load_dotenv
 import streamlit as st
 
 from utils.live_data_visualisations import make_interruptions_bar, make_live_train_table
-from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator, get_route_data, get_interruption_data, get_connection
+from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_route_data, get_interruption_data, get_connection
 
 if __name__ == '__main__':
     load_dotenv()
 
 ######### Dashboard Setup #########
-    st.logo("logo.png", size='large')
     ### Fetching Data ###
     QUERY = """SELECT *
                FROM train_info_view 

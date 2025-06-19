@@ -12,8 +12,6 @@ from utils.live_data_visualisations import make_operator_cancellations_pie
 from utils.historical_data_visualisations import make_delays_heatmap, make_stations_cancellations_pie, make_delay_per_station_bar, make_cancellations_per_station_bar
 from utils.historical_data_dataframes import get_cancellation_data_per_station, get_avg_delay_per_station,fetch_data
 
-
-st.logo("logo.png", size='large')
 st.title("💾 Historical Data:")
 window_filter = st.radio("Filter Date Window:", ["On", "Before", "After"], horizontal=True)
 filter_date = st.date_input(label="Show data after:")
