@@ -34,16 +34,17 @@ CREATE TABLE route (
 
 CREATE TABLE train_service (
     train_service_id INT GENERATED ALWAYS AS IDENTITY,
-    service_uid VARCHAR(6) NOT NULL UNIQUE,
+    service_uid VARCHAR(6) NOT NULL,
     train_identity VARCHAR(4) NOT NULL,
     service_date DATE NOT NULL,
     route_id INT NOT NULL,
     PRIMARY KEY (train_service_id),
-    FOREIGN KEY (route_id) REFERENCES route(route_id)
+    FOREIGN KEY (route_id) REFERENCES route(route_id),
+    UNIQUE (service_uid, service_date)
 );
 
 CREATE TABLE train_stop (
-    train_stop_id SMALLINT GENERATED ALWAYS AS IDENTITY,
+    train_stop_id BIGINT GENERATED ALWAYS AS IDENTITY,
     train_service_id INT NOT NULL,
     station_id SMALLINT NOT NULL,
     scheduled_arr_time TIME,
@@ -54,7 +55,7 @@ CREATE TABLE train_stop (
     platform_changed BOOLEAN NOT NULL,
     PRIMARY KEY (train_stop_id),
     FOREIGN KEY (station_id) REFERENCES station(station_id),
-    FOREIGN KEY (train_service_id) REFERENCES train_service(train_service_id)
+    FOREIGN KEY (train_service_id) REFERENCES train_service(train_service_id),
     UNIQUE (train_service_id, station_id)
 );
 

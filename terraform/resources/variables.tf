@@ -62,14 +62,14 @@ variable "API_PASSWORD" {
   type = string
 }
 
-variable "EMAIL" {
-  type = string
-}
-
 variable "STATIONS" {
   type = string
 }
 
 variable "INCIDENTS_URL" {
+  type = string
+}
+
+variable "TOPIC_PREFIX" {
   type = string
 }

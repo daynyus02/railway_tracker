@@ -116,18 +116,30 @@ def find_new_train_services(api_data_train_service,
         inplace=True
     )
 
-    existing_service_uids = set(database_data_train_service['service_uid'])
+    existing_services = set(
+        zip(
+            database_data_train_service["service_uid"],
+            database_data_train_service["service_date"]
+        )
+    )
+
+    api_data_train_service["service_key"] = list(
+        zip(api_data_train_service["service_uid"],
+            api_data_train_service["service_date"])
+    )
 
     new_train_service = api_data_train_service[
-        ~api_data_train_service['service_uid'].isin(existing_service_uids)
+        ~api_data_train_service["service_key"].isin(existing_services)
     ]
+
+    new_train_service.drop(columns=["service_key"], inplace=True)
 
     return new_train_service
 
 
 def map_api_train_stop_data(api_data_train_stop: DataFrame,
                             database_data_train_services: DataFrame,
-                            database_data_stations):
+                            database_data_stations: DataFrame):
     """Mapping train_service_id and station_id to API train stop data."""
     service_uid_to_id = dict(zip(
         database_data_train_services["service_uid"], database_data_train_services["train_service_id"]))
@@ -436,7 +448,7 @@ def update_train_stop(api_data: DataFrame, conn: Connection):
             """, list(api_data_train_stop.itertuples(index=False, name=None)))
 
         conn.commit()
-        logger.info("Updated %d rows into train_stop.",
+        logger.info("Upserted %d rows in train_stop.",
                     len(api_data_train_stop))
     except DatabaseError as e:
         conn.rollback()

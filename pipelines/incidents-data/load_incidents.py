@@ -11,6 +11,7 @@ from psycopg2.extensions import connection as Connection
 
 from extract_incidents import extract
 from transform_incidents import transform
+from alerts_incidents import publish_incident_alert_to_topic
 
 logger = logging.getLogger(__name__)
 
@@ -169,21 +170,24 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
                 incident_id = cur.fetchone()[0]
                 inserted_count += 1
                 logger.info("Inserted new incident %s.", incident_number)
+                publish_incident_alert_to_topic("PAD", "BRI", row["summary"], row["info_link"],
+                                                row["start_time"], row["end_time"], row["is_planned"], True)
 
             elif existing_versions[incident_number] != version_number:
                 logger.debug("Updating existing incident.")
                 update_query = """
-                    UPDATE incident
-                    SET route_id = %s,
-                        start_time = %s,
-                        end_time = %s,
-                        description = %s,
-                        version_number = %s,
-                        is_planned = %s,
-                        info_link = %s,
-                        summary = %s
-                    WHERE incident_number = %s
-                    RETURNING incident_id;
+                UPDATE incident
+                SET route_id = %s,
+                    start_time = %s,
+                    end_time = %s,
+                    description = %s,
+                    version_number = %s,
+                    is_planned = %s,
+                    info_link = %s,
+                    summary = %s
+                WHERE incident_number = %s
+                RETURNING incident_id
+                ;
                 """
 
                 values = (
@@ -203,6 +207,8 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
                 updated_count += 1
                 logger.info("Updated incident %s to version %s.",
                             incident_number, version_number)
+                publish_incident_alert_to_topic("PAD", "BRI", row["summary"], row["info_link"],
+                                                row["start_time"], row["end_time"], row["is_planned"], False)
 
             else:
                 skipped_count += 1
@@ -216,7 +222,8 @@ def insert_incidents(conn: Connection, data: DataFrame) -> None:
                 INSERT INTO operator_incident_assignment
                     (incident_id, operator_id)
                 VALUES %s
-                ON CONFLICT DO NOTHING;
+                ON CONFLICT DO NOTHING
+                ;
                 """
                 execute_values(cur, assignment_query, assignment_values)
 

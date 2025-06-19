@@ -6,3 +6,4 @@ pandas
 pytest-cov
 psycopg2-binary
 reportlab
+boto3

@@ -9,7 +9,6 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - ACCESS_KEY - AWS IAM access key.
 - SECRET_KEY - The corresponding secret key for the above IAM user.
 - ACCOUNT_ID - AWS Account ID.
-- EMAIL - An email to subscribe to SNS topic.
 - VPC_ID - The ID of the VPC to use.
 - SUBNET_ID_X - The ID's of subnets to use.
 - DB_HOST - RDS instance endpoint.
@@ -20,17 +19,28 @@ Create a `terraform.tfvars` file locally, and populate it with:
 - API_USERNAME - RTT API username.
 - API_PASSWORD - RTT API password.
 - STATIONS - Comma separated list of stations to be loaded.
-- GW_URL - URL for the incidents API (Great Western Railway services only).
+- INCIDENTS_URL - URL for the incidents API.
+- TOPIC_PREFIX - Prefix for alerts topics.
 
 ## Resources provisioned
 
-#### SNS Topic:
-- `c17-trains-sns-topic-rtt-pipeline-alerts`
-- For RTT pipeline alerts.
+#### S3 Bucket:
+- `c17-trains-bucket-reports`
+- Stores daily summary reports for archival.
 
-#### SNS Topic:
-- `c17-trains-sns-topic-incidents-pipeline-alerts`
-- For incidents pipeline alerts.
+#### Security Group:
+- `c17-trains-ecs-sg`
+- A security group for the ECS Service.
+- Allows incoming HTTP traffic on port 8501 from any IP.
+- Allows outgoing traffic on port 5432. 
+
+#### ECS Task Definition:
+- `c17-trains-td-dashboard`
+- Runs a containerized Streamlit dashboard.
+
+#### ECS Fargate Service:
+- `c17-trains-ecs-service-dashboard`
+- Runs the dashboard as a service.
 
 #### Lambda:
 - `c17-trains-lambda-rtt-pipeline`
