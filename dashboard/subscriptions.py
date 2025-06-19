@@ -8,6 +8,7 @@ import streamlit as st
 import psycopg2
 from dotenv import load_dotenv
 import boto3
+from botocore.exceptions import ClientError
 
 from utils.historical_data_dataframes import fetch_data, get_unique_routes, station_to_crs, get_unique_stations
 
@@ -32,43 +33,46 @@ with st.form("Subscriptions"):
 
     submitted = st.form_submit_button("Submit")
     if submitted:
-        if not email:
-            st.error("Please enter your email at the top of this page.")
-        if route == "Choose a route.":
-            st.error("No route selected!")
-        if not (delay_information or disruptions):
-            st.error("Please select an option.")
-        if email and (route != "Choose a route.") and (delay_information or disruptions):
-            st.write("Thanks for subscribing!")
-            sns_client = boto3.client('sns',
-                                        region_name=ENV["REGION"],
-                                        aws_access_key_id=ENV["ACCESS_KEY"],
-                                        aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
-            stations = route.split(" to ")
-            station1 = station_to_crs(stations[0])
-            station2 = station_to_crs(stations[1])
-            if delay_information:
-                topic_name = ENV["TOPIC_PREFIX"] + "delays-" + f"{station1}-{station2}"
-                topic = sns_client.create_topic(
-                    Name= topic_name
+        try:
+            if not email:
+                st.error("Please enter your email at the top of this page.")
+            if route == "Choose a route.":
+                st.error("No route selected!")
+            if not (delay_information or disruptions):
+                st.error("Please select an option.")
+            if email and (route != "Choose a route.") and (delay_information or disruptions):
+                st.write("Thanks for subscribing!")
+                sns_client = boto3.client('sns',
+                                            region_name=ENV["REGION"],
+                                            aws_access_key_id=ENV["ACCESS_KEY"],
+                                            aws_secret_access_key=ENV["SECRET_ACCESS_KEY"])
+                stations = route.split(" to ")
+                station1 = station_to_crs(stations[0])
+                station2 = station_to_crs(stations[1])
+                if delay_information:
+                    topic_name = ENV["TOPIC_PREFIX"] + "delays-" + f"{station1}-{station2}"
+                    topic = sns_client.create_topic(
+                        Name= topic_name
+                    )
+                    response = sns_client.subscribe(
+                    TopicArn=topic.get("TopicArn"),
+                    Protocol='email',
+                    Endpoint=email,
+                    ReturnSubscriptionArn=True
                 )
-                response = sns_client.subscribe(
-                TopicArn=topic.get("TopicArn"),
-                Protocol='email',
-                Endpoint=email,
-                ReturnSubscriptionArn=True
-            )
-            if disruptions:
-                topic_name = ENV["TOPIC_PREFIX"] + "incidents-" + f"{station1}-{station2}"
-                topic = sns_client.create_topic(
-                    Name= topic_name
+                if disruptions:
+                    topic_name = ENV["TOPIC_PREFIX"] + "incidents-" + f"{station1}-{station2}"
+                    topic = sns_client.create_topic(
+                        Name= topic_name
+                    )
+                    response = sns_client.subscribe(
+                    TopicArn=topic.get("TopicArn"),
+                    Protocol='email',
+                    Endpoint=email,
+                    ReturnSubscriptionArn=True
                 )
-                response = sns_client.subscribe(
-                TopicArn=topic.get("TopicArn"),
-                Protocol='email',
-                Endpoint=email,
-                ReturnSubscriptionArn=True
-            )
+        except ClientError:
+            st.error("Invalid email address provided.")
 
 
 with st.form("Reports:"):
