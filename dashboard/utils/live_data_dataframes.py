@@ -2,6 +2,16 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import psycopg2
+
+def get_connection():
+    """Returns a psycopg2 connection to the RDS database."""
+    connection = psycopg2.connect(host=ENV['DB_HOST'],
+                            port=ENV['DB_PORT'],
+                            dbname=ENV['DB_NAME'],
+                            user=ENV['DB_USER'],
+                            password=ENV['DB_PASSWORD'])
+    return connection
 
 @st.cache_resource
 def fetch_data(query, _conn) -> pd.DataFrame:

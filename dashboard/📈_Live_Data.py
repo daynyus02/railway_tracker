@@ -3,19 +3,9 @@ from os import environ as ENV
 import datetime
 from dotenv import load_dotenv
 import streamlit as st
-import psycopg2
 
 from utils.live_data_visualisations import make_operator_cancellations_pie, make_interruptions_bar, make_live_train_table
-from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator, get_route_data, get_interruption_data
-
-def get_connection():
-    """Returns a psycopg2 connection to the RDS database."""
-    connection = psycopg2.connect(host=ENV['DB_HOST'],
-                            port=ENV['DB_PORT'],
-                            dbname=ENV['DB_NAME'],
-                            user=ENV['DB_USER'],
-                            password=ENV['DB_PASSWORD'])
-    return connection
+from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator, get_route_data, get_interruption_data, get_connection
 
 if __name__ == '__main__':
     load_dotenv()
