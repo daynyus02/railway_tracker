@@ -12,6 +12,7 @@ from load import report_already_exists, load_new_report
 @pytest.fixture
 def mock_env(monkeypatch):
     monkeypatch.setenv("S3_BUCKET_NAME", "test-bucket")
+    monkeypatch.setenv("AWS_ACCESS", "test-bucket")
 
 
 def test_report_already_exists_true(mock_env, caplog):
@@ -111,3 +112,9 @@ def test_load_new_report_correct_error_logs(mock_client, mock_env, caplog):
     assert caplog.records[0].message == (
         "Failed to load report to S3 bucket: An error occurred (500) when calling the PutObject operation: Unknown."
     )
+
+
+@patch("load.client", return_value=False)
+def test_get_s3_client(mock_client, mock_env, caplog):
+
+    caplog.set_level(logging.INFO)
