@@ -104,7 +104,7 @@ def run_full_email_pipeline() -> None:
                     logging.info("%s", sent_status)
 
 
-def lambda_handler(event, context) -> dict:
+def lambda_handler(event, context) -> None:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
 
