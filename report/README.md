@@ -34,5 +34,6 @@ This directory contains the scripts for an AWS Lambda which creates PDF summary 
 - `SENDER_EMAIL`
 
 ### Usage
-Build a docker file with docker build -t [tag_name] . Run the image with docker run --env-file .env [tag_name]
+1. Build a docker file with `docker build -t [tag_name] .`     
+2. Run the image with `docker run --env-file .env [tag_name]`
 
