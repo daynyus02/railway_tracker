@@ -108,4 +108,8 @@ def lambda_handler(event, context) -> dict:
     """AWS Lambda handler that runs the ETL pipeline for summary reports."""
     load_dotenv()
 
-    run_full_email_pipeline()
+    try:
+        run_full_email_pipeline()
+        logging.info("Email pipeline successfully run.")
+    except Exception as e:
+        logging.info(f"Error running email pipeline: {str(e)}")
