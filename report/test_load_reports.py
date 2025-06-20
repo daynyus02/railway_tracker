@@ -77,7 +77,7 @@ def test_report_already_exists_file_raises_client_error(mock_env, caplog):
     )
 
 
-@patch("load.report_already_exists", return_value=False)
+@patch("load_reports.report_already_exists", return_value=False)
 def test_load_new_report_correct_logs(mock_client, mock_env, caplog):
 
     caplog.set_level(logging.INFO)
@@ -95,7 +95,7 @@ def test_load_new_report_correct_logs(mock_client, mock_env, caplog):
     )
 
 
-@patch("load.report_already_exists", return_value=False)
+@patch("load_reports.report_already_exists", return_value=False)
 def test_load_new_report_correct_error_logs(mock_client, mock_env, caplog):
 
     caplog.set_level(logging.INFO)
