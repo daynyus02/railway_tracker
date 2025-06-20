@@ -1,4 +1,6 @@
-# 🚆 Railway Tracker by [logo](./OnTrack.png) OnTrack
+# 🚆 Railway Tracker by OnTrack
+
+![logo](./OnTrack.png)
 
 A cost-effective, end-to-end data pipeline and reporting platform for monitoring train service status across the UK rail network.
 
@@ -38,10 +40,34 @@ Our solution at OnTrack brings together three main services:
 
 - Data Ingestion: Lambda function pulls incident data from the Realtime Trains API every minute, and National Rail Incidents API before storing it in PostgreSQL (RDS).
 - Alerting: SNS topics send alerts for delays, cancellations and incidents on watched routes.
-- Reporting: Daily scheduled Lambda queries the database and generates summary reports per station.
+- Reporting: Daily scheduled Lambda queries the database and generates summary reports per station, and stores in an S3 bucket.
+- Database: PostgreSQL running on an AWS RDS.
+- Dashboard: Running on an AWS ECS service.
 
 ## Repository Structure
 
+- `/architecture` - Contains our project Entity Relationship Diagram, Architecture Diagram, and files to set up tables in the database.
+- `/dashboard` - Contains relevant files for the dashboard.
+- `/pipelines` - Contains two subdirectories for the ETL pipelines for the respective API's.
+- `/report` - Contains all the scripts to generate and publish the daily PDF summary reports.
+- `/terraform` - Contains directories to configure all AWS resources using Terraform.
+
 ## Getting Started
 
+### Prerequisites
+- Python
+- AWS CLI configured
+- Terraform 1.5+
+- Docker
+
+1. Clone the Repository
+2. Set Up Environment Variables as described in each subdirectory
+3. Deploy Infrastructure
+4. Deploy Application Code
+
 ## Tech Stack
+
+- **AWS**: Lambda, RDS, SNS, SES, EventBridge, ECR, ECS, S3
+- **Python**: Boto3, Pandas, psycopg2, pytest, requests, logging, reportlab
+- **Terraform**: Infrastructure as code
+- **CI/CD**: GitHub Actions
