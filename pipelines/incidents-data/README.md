@@ -14,10 +14,10 @@ It also sends alerts for new and updated incidents on defined routes.
 - `test_transform_incidents.py` - Tests for the transform script.
 - `load_incidents.py` - Loads new incidents into the database, updates updated incidents in the database, and skips incidents already present.
 - `test_load_incidents.py` - Tests for the load script.
-- `conftest.py` - Contains fixtures for the tests.
 - `alerts_incidents.py` - Contains functions to publish alerts for new/updated incidents.
+- `test_alerts_incidents.py` - Tests for the alerts script.
+- `conftest.py` - Contains fixtures for the tests.
 - `deploy_image.bash` - Commands to build and deploy the image to AWS.
-
 
 ## Setup and Installation
 1. Install AWS CLI.
