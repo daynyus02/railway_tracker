@@ -20,14 +20,14 @@ logger = logging.getLogger()
 logger.setLevel("DEBUG")
 
 
-def get_station_name_crs_tuples(conn: Connection) -> list[str]:
+def get_station_name_crs_tuples(conn: Connection) -> list[tuple]:
     """Retrieves name and crs for each station in the database as list of tuples."""
 
     with conn.cursor(cursor_factory=DictCursor) as curs:
         curs.execute("SELECT station_name, station_crs FROM station;")
         station_names = curs.fetchall()
 
-    return station_names
+    return [tuple(station) for station in station_names]
 
 
 def get_sns_topic_arn_by_station(sns_client: "Client", station_crs: str) -> str:
