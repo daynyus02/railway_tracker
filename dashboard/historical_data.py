@@ -35,7 +35,7 @@ elif window_filter == "After":
 delays=get_delays(data)
 delays = add_delay_time(delays)
 
-######### Heatmap of delays over time #########
+""" Heatmap of delays over time """
 heatmap_data = add_delay_time(data)
 selected_station = st.selectbox("Choose a statiion: ", options=["All"] + sorted(delays["station_name"].unique()))
 heatmap = make_delay_heatmap(heatmap_data, selected_station)
@@ -45,11 +45,12 @@ if data.empty:
 else:
     st.altair_chart(heatmap)
 
-######### Area chart of delays and cancellations over time #########
+""" Area chart of delays and cancellations over time """
 st.subheader("Interruptions over time: ")
 delays_area = make_delays_area_chart(data)
 st.altair_chart(delays_area)
-######### Cancellations pie charts #########
+
+""" Cancellations pie charts """
 col1,col2 = st.columns(2)
 with col1:
     operator_cancellations = get_cancelled_data_per_operator(data)
@@ -62,7 +63,7 @@ with col2:
     st.subheader("Cancellations per station:")
     st.altair_chart(station_cancellations_pie)
 
-######### Delays per station bar #########
+""" Delays per station bar """
 delays_per_station = get_delays(data)
 delays_per_station = add_delay_time(delays_per_station)
 delays_per_station = get_avg_delay_per_station(delays_per_station)
@@ -70,7 +71,7 @@ delays_per_station_bar = make_delay_per_station_bar(delays_per_station)
 st.subheader("Average delay per station: ")
 st.altair_chart(delays_per_station_bar)
 
-######### Cancellations per station bar #########
+""" Cancellations per station bar """
 st.subheader("Average cancellations per station: ")
 cancellations_bar = make_cancellations_per_station_bar(station_cancellations)
 st.altair_chart(cancellations_bar)

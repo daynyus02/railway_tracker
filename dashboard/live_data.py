@@ -9,9 +9,7 @@ from utils.live_data_dataframes import fetch_data, filter_data, convert_times_to
 
 if __name__ == '__main__':
     load_dotenv()
-
-######### Dashboard Setup #########
-    ### Fetching Data ###
+    """ Fetching Data """
     QUERY = """SELECT *
                FROM train_info_view 
                WHERE (service_date + scheduled_dep_time) >= (NOW() - INTERVAL '1 minute');"""
@@ -23,7 +21,7 @@ if __name__ == '__main__':
 
         st.title("🚆 Railway Tracker")
 
-######### Filtering data based on user inputs #########
+        """ Filtering data based on user inputs """
         arrival_stations = sorted(data["station_name"].unique())
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -62,7 +60,7 @@ if __name__ == '__main__':
         if interruption_filter != "All":
             filtered_data = filtered_data[filtered_data['Status'] == interruption_filter]
 
-######### Live train departure table #########
+        """ Live train departure table """
         if interruption_filter == "Cancelled":
             styled_arrivals = make_live_train_table(filtered_data, True, 'arrival')
         else:
@@ -77,7 +75,7 @@ if __name__ == '__main__':
         st.subheader("Live Departures 🚇:")
         st.dataframe(styled_departures, hide_index=True, height=210)
 
-######### Routes table #########
+        """ Routes table """
         all_delays = get_delays(data)
         all_delays = add_delay_time(all_delays)
         routes = get_route_data(all_delays)
@@ -97,7 +95,7 @@ if __name__ == '__main__':
         else:
             st.warning("No data available.")
 
-######### Summary Info #########
+        """ Summary Info """
         st.markdown("### Summary Information 📊: ")
         delays = get_delays(data)
         delays = filter_data(delays, selected_arrival, selected_destination, selected_operator)
@@ -114,7 +112,7 @@ if __name__ == '__main__':
             st.markdown(f"#### Delayed Stops: {delay_number}")
             st.markdown(f"#### Total Cancellations: {filtered_data[filtered_data["Status"] == "Cancelled"]["service_uid"].nunique()}")
 
-######### Cancelled trains pie chart and interruptions bar chart #########
+        """ Cancelled trains pie chart and interruptions bar chart """
         interruptions = get_interruption_data(data)
         interruptions_chart = make_interruptions_bar(interruptions)
         st.markdown("### Interruptions per Operator:")
