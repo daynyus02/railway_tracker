@@ -36,7 +36,7 @@ delays=get_delays(data)
 delays = add_delay_time(delays)
 
 heatmap_data = add_delay_time(data)
-selected_station = st.selectbox("Choose a statiion: ", options=["All"] + sorted(delays["station_name"].unique()))
+selected_station = st.selectbox("Choose a station: ", options=["All"] + sorted(delays["station_name"].unique()))
 heatmap = make_delay_heatmap(heatmap_data, selected_station)
 st.subheader("Delay peak times:")
 if data.empty:
