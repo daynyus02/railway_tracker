@@ -22,7 +22,7 @@ It also sends alerts for new and updated incidents on defined routes.
 ## Setup and Installation
 1. Install AWS CLI.
 - [Installation instructions here.](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-2. Install docker desktop.
+2. Install Docker Desktop.
 - [Installation instructions here.](https://docs.docker.com/desktop/)
 3. Ensure that environment variables are stored locally in a .env file.
 
