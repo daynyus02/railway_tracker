@@ -5,6 +5,7 @@ import numpy as np
 import streamlit as st
 import psycopg2
 from dotenv import load_dotenv
+import pytz
 
 def get_connection():
     """Returns a psycopg2 connection to the RDS database."""
@@ -16,7 +17,7 @@ def get_connection():
                             password=ENV['DB_PASSWORD'])
     return connection
 
-@st.cache_resource
+@st.cache_resource()
 def fetch_data(query, _conn) -> pd.DataFrame:
     """Returns a dataframe given a query and connection."""
     df = pd.read_sql_query(query, _conn)
@@ -26,9 +27,15 @@ def fetch_data(query, _conn) -> pd.DataFrame:
 ### Transforming data ###
 def convert_times_to_datetime(df) -> None:
     """Converts date columns to datetime."""
+    utc = pytz.utc
+    london = pytz.timezone('Europe/London')
     for col in ['actual_arr_time','scheduled_arr_time', 'actual_dep_time','scheduled_dep_time']:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], format='%H:%M:%S')
+            df[col] = df[col].apply(lambda x: 
+                london.normalize(utc.localize(pd.Timestamp.combine(pd.Timestamp.today().date(), x.time())).astimezone(london)) 
+                if pd.notnull(x) else pd.NaT
+            )
 
 def add_status_column(df) -> None:
     """Adds a column containing service status based on scheduled and actual times."""

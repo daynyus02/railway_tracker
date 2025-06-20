@@ -2,7 +2,7 @@
 import pandas as pd
 import altair as alt
 
-def make_new_heatmap(df: pd.DataFrame, station: str) -> alt.Chart:
+def make_delay_heatmap(df: pd.DataFrame, station: str) -> alt.Chart:
     """Produces a heatmap showing average delay time per hour."""
     delay_heatmap = df[["delay_time", "scheduled_dep_time", "station_name"]].copy()
     delay_heatmap["hour"] = delay_heatmap["scheduled_dep_time"].dt.hour
@@ -10,7 +10,8 @@ def make_new_heatmap(df: pd.DataFrame, station: str) -> alt.Chart:
     all_avg = delay_heatmap.groupby(["hour", "station_name"])["delay_time"].mean().reset_index()
     all_avg["avg_delay"] = all_avg["delay_time"].round(1)
     max_delay = all_avg["avg_delay"].max()
-
+    # delay_heatmap = delay_heatmap[delay_heatmap["delay_time"] > 0]
+    # max_delay = delay_heatmap["delay_time"].max()
     if station != "All":
         delay_heatmap = delay_heatmap[delay_heatmap["station_name"] == station]
         delay_heatmap = delay_heatmap.groupby("hour")["delay_time"].mean().reset_index()

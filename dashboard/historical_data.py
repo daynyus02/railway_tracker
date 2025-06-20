@@ -9,7 +9,7 @@ import psycopg2
 
 from utils.live_data_dataframes import convert_times_to_datetime, add_status_column, add_delay_time, get_delays, get_cancelled_data_per_operator
 from utils.live_data_visualisations import make_operator_cancellations_pie
-from utils.historical_data_visualisations import make_stations_cancellations_pie, make_delay_per_station_bar, make_cancellations_per_station_bar, make_delays_area_chart, make_new_heatmap
+from utils.historical_data_visualisations import make_stations_cancellations_pie, make_delay_per_station_bar, make_cancellations_per_station_bar, make_delays_area_chart, make_delay_heatmap
 from utils.historical_data_dataframes import get_cancellation_data_per_station, get_avg_delay_per_station,fetch_data
 
 st.title("💾 Historical Data:")
@@ -36,9 +36,9 @@ delays=get_delays(data)
 delays = add_delay_time(delays)
 
 ######### Heatmap of delays over time #########
-heatmap_test = add_delay_time(data)
+heatmap_data = add_delay_time(data)
 selected_station = st.selectbox("Choose a statiion: ", options=["All"] + sorted(delays["station_name"].unique()))
-heatmap = make_new_heatmap(heatmap_test, selected_station)
+heatmap = make_delay_heatmap(heatmap_data, selected_station)
 st.subheader("Delay peak times:")
 if data.empty:
     st.warning("No Data.")
