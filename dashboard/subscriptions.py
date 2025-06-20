@@ -21,7 +21,7 @@ conn = psycopg2.connect(host=ENV['DB_HOST'],
 data = fetch_data(conn)
 
 """ Subscriptions """
-email = st.text_input("Email address")
+email = st.text_input(label="Email address")
 st.subheader("📲 Subscriptions: ")
 with st.form("Subscriptions"):
     st.subheader("💥 Disruption Alerts:")

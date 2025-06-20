@@ -83,7 +83,7 @@ if __name__ == '__main__':
         with col1:
             st.markdown("### Most Delayed Routes:")
         with col3:
-            number_shown = st.radio('',["5", "10", "25", "50"], horizontal=True)
+            number_shown = st.radio('Show',["5", "10", "25"], horizontal=True, label_visibility='hidden')
         if number_shown == "5":
             st.dataframe(routes.head(5), hide_index=True)
         elif number_shown == "10":
