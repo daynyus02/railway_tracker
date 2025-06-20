@@ -41,7 +41,7 @@ def report_already_exists(s3_client: client, filename: str) -> bool:
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchKey' or e.response['Error']['Code'] == '404':
-            logger.info("%s does not already exist in S3")
+            logger.info("%s does not already exist in S3", filename)
             return False
         logger.error(
             "Error accessing S3 bucket to check for existing file.")
@@ -57,6 +57,9 @@ def load_new_report(s3_client: client, station_name: str, data: dict) -> None:
 
     if not report_already_exists(s3_client, filename):
         pdf = generate_pdf(station_name, data)
-        s3_client.put_object(
-            Bucket=ENV["S3_BUCKET_NAME"], Key=filename, Body=pdf, ContentType='application/pdf')
-        logger.info("%s file successfully created in S3.", filename)
+        try:
+            s3_client.put_object(
+                Bucket=ENV["S3_BUCKET_NAME"], Key=filename, Body=pdf, ContentType='application/pdf')
+            logger.info("%s file successfully created in S3.", filename)
+        except ClientError as e:
+            logger.error(f"Failed to load report to S3 bucket: {str(e)}.")
