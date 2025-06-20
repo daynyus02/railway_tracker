@@ -1,0 +1,55 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  apply:
+    name: Terraform Apply ${{ matrix.directory }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory:
+          - terraform/ECR
+          - terraform/resources
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
+    env:
+      ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      VPC_ID: ${{ secrets.VPC_ID }}
+      SUBNET_ID_1: ${{ secrets.SUBNET_ID_1 }}
+      SUBNET_ID_2: ${{ secrets.SUBNET_ID_2 }}
+      SUBNET_ID_3: ${{ secrets.SUBNET_ID_3 }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      API_USERNAME: ${{ secrets.API_USERNAME }}
+      API_PASSWORD: ${{ secrets.API_PASSWORD }}
+      STATIONS: ${{ secrets.STATIONS }}
+      INCIDENTS_URL: ${{ secrets.INCIDENTS_URL }}
+      TOPIC_PREFIX: ${{ secrets.TOPIC_PREFIX }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -input=false
+    
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan

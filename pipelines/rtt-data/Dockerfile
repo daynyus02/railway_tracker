@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY extract.py .
 COPY transform.py .
 COPY load.py .
+COPY alerts.py .
 COPY main.py .
 
 CMD ["main.lambda_handler"]
