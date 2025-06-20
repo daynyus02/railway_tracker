@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 import logging
+from datetime import datetime as dt
 
 from botocore.exceptions import ClientError
 
@@ -81,6 +82,8 @@ def test_load_new_report_correct_logs(mock_client, mock_env, caplog):
 
     caplog.set_level(logging.INFO)
 
+    date_string = dt.today().strftime("%d-%m-%Y")
+
     mock_client.put_object.return_value = {}
 
     load_new_report(mock_client, "London Paddington", {})
@@ -88,7 +91,7 @@ def test_load_new_report_correct_logs(mock_client, mock_env, caplog):
     assert len(caplog.records) == 1
     assert caplog.records[0].levelname == "INFO"
     assert caplog.records[0].message == (
-        "london_paddington_summary_report_19-06-2025.pdf file successfully created in S3."
+        f"london_paddington_summary_report_{date_string}.pdf file successfully created in S3."
     )
 
 
