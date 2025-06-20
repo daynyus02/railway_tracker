@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY utils/ utils/
-COPY .streamlit .stremlit/
+COPY .streamlit .streamlit/
 COPY logo.png .
 COPY logo_words.png .
 COPY live_data.py .
