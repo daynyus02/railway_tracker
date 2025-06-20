@@ -7,7 +7,7 @@ from datetime import datetime as dt
 
 from botocore.exceptions import ClientError
 
-from report.load_reports import report_already_exists, load_new_report
+from load_reports import report_already_exists, load_new_report
 
 
 @pytest.fixture
