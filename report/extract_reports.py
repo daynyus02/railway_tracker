@@ -6,7 +6,6 @@ import logging
 from psycopg2 import connect, OperationalError
 from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import connection as Connection
-from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -108,14 +107,3 @@ def get_days_data_per_station(station_crs: str, conn: Connection) -> list[dict]:
         curs.close()
 
     return result
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    db_conn = get_db_connection()
-
-    stations = ["PAD", "RDG", "DID", "SWI", "CPM", "BTH", "BRI"]
-
-    for station in stations:
-        get_days_data_per_station(station, db_conn)

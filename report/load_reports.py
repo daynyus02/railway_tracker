@@ -6,11 +6,7 @@ from datetime import datetime as dt
 
 from boto3 import client
 from botocore.exceptions import ClientError
-from dotenv import load_dotenv
-from pandas import DataFrame
 
-from extract_reports import get_days_data_per_station, get_db_connection, get_station_name_from_crs
-from transform_summary import get_station_summary
 from report import generate_pdf
 
 logger = logging.getLogger(__name__)
@@ -67,16 +63,3 @@ def load_new_report(s3_client: client, station_name: str, data: dict) -> None:
             logger.info("%s file successfully created in S3.", filename)
         except ClientError as e:
             logger.error(f"Failed to load report to S3 bucket: {str(e)}.")
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    with get_db_connection() as conn:
-        extracted_data = DataFrame(get_days_data_per_station("DID", conn))
-        summary_data = get_station_summary(extracted_data)
-
-        station_name = get_station_name_from_crs("DID", conn)
-
-        s3_client = get_s3_client()
-        load_new_report(s3_client, station_name, summary_data)

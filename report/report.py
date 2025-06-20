@@ -56,13 +56,3 @@ def get_email_message(station_name: str, pdf_bytes: bytes) -> MIMEMultipart:
     msg.attach(attachment)
 
     return msg
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    with get_db_connection() as db_conn:
-        station_data = DataFrame(get_days_data_per_station("DID", db_conn))
-        summary = get_station_summary(station_data)
-        station_name = get_station_name_from_crs("DID", db_conn)
-        generate_pdf(station_name, summary)
