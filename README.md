@@ -60,6 +60,7 @@ Our solution at OnTrack brings together three main services:
 - Terraform 1.5+
 - Docker
 
+### Setup
 1. Clone the Repository
 2. Set Up Environment Variables as described in each subdirectory
 3. Deploy Infrastructure
