@@ -6,7 +6,7 @@ A cost-effective, end-to-end data pipeline and reporting platform for monitoring
 
 ## Overview
 
-We’ve all experienced the frustration—standing on a freezing platform, staring at a board that keeps updating, or worse, shows nothing at all.
+We’ve all experienced the frustration - standing on a freezing platform, staring at a board that keeps updating, or worse, shows nothing at all.
 There’s a widespread perception that the UK railway is among the worst in Europe, but how accurate is that belief?
 
 The problem we identified is not just service reliability, but the lack of clear, accessible data that gives passengers a true picture of what’s happening across the rail network.
