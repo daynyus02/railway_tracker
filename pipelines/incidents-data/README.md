@@ -17,27 +17,21 @@ It also sends alerts for new and updated incidents on defined routes.
 - `alerts_incidents.py` - Contains functions to publish alerts for new/updated incidents.
 - `test_alerts_incidents.py` - Tests for the alerts script.
 - `conftest.py` - Contains fixtures for the tests.
-
-
+- `deploy_image.bash` - Commands to build and deploy the image to AWS.
 
 ## Setup and Installation
-1. Create and activate a new virtual environment.
-- `python3 -m venv .venv`
-- `source .venv/bin/activate`
-2. Install all dependencies.
-- `pip install -r requirements.txt`
-3. Ensure that environment variables are stored locally in a `.env` file.
+1. Install AWS CLI.
+- [Installation instructions here.](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+2. Install Docker Desktop.
+- [Installation instructions here.](https://docs.docker.com/desktop/)
+3. Ensure that environment variables are stored locally in a .env file.
 
 ### Example `.env`
 ```
-INCIDENTS_URL = XXX - URL for incidents API.
-DB_HOST = XXX
-DB_NAME = XXX
-DB_USER = XXX
-DB_PASSWORD = XXX
-DB_PORT = XXX
+ECR_IMAGE_URI - ECR image URI
+IMAGE_NAME - Local image tag name
+AWS_ECR_REGISTRY - ECR registry URL
 ```
 
 ## Usage
-Build a docker file with `docker build -t [tag_name] .`
-Run the image with `docker run --env-file .env [tag_name]`
+Build and upload an image to the ECR using `bash deploy_image.bash`.
