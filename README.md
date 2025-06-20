@@ -17,7 +17,7 @@ Our solution at OnTrack brings together three main services:
 
 - **Daily summary reports** - PDF reports generated for each of our tracked stations, with data about the incidence and severity of delays and cancellations affecting services from the previous day.
 
-- **Online dashboard** - Live dashborad displaying departure and arrival information, with an accessible format with interactive elements allowing users to select relevant stations and times to suit their travelling needs.
+- **Online dashboard** - Live dashboard displaying departure and arrival information, with an accessible format with interactive elements allowing users to select relevant stations and times to suit their traveling needs.
 
 ## Roles
 
