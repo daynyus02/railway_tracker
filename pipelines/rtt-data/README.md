@@ -11,6 +11,10 @@ This pipeline **extracts** train service data from the Realtime Trains API and p
     Contains functions used to transform data fetched by the extract.py script. It prepares the raw data for the load phase by cleaning, validating, and converting it into the correct data types (e.g. time, date, boolean).
 - **load.py**  
     Contains functions used to load and update the database with transformed data from the transform.py script. 
+- **alerts.py**  
+    Contains functions used to filter out delayed trains for specific routes and send them to their corresponding topics.
+    
+
 
 
 ### 🛠️ Setup and Installation 🛠️

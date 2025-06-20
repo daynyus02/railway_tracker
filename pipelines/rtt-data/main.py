@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from extract import fetch_train_data
 from transform import transform_train_data
 from load import get_connection, load_data_into_database
+from alerts import send_notification
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
